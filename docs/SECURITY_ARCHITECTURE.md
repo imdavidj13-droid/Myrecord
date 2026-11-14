@@ -282,6 +282,15 @@ Test-only files: `docs/D1_REGISTRATION_PROTOTYPE.sql`, `src/security/d1-registra
 - The in-memory transport test double is **not a server authentication implementation**, and the deployed website still does not import the vault client or accept real records. Separate D1 SQL regression tests check database constraints but do not constitute a deployed end-to-end security review.
 - No remote migration or user-facing storage endpoint was enabled. The first requirement before real data remains independent cryptography/security assessment, DPIA/legal/safeguarding review, hardened server operations, and verified production-safe rollout controls.
 
+## Phase 23 — enforce authenticated-history continuity within a browser session
+
+- The `BrowserVaultSessionForTests` composition now pins each verified revision and digest in memory. Later reads and exports reject histories that are shorter than the previous verified prefix or change its digest. This prevents a synthetic server from silently rolling back a history **during the same active browser session**.
+- Tests now cover loss of a revision after a successful write, including read and export without an explicit caller-supplied head.
+- This does **not** solve malicious rollback after a browser restart or across devices. A separately retained, independently verifiable anchor and formal retention/evidence policy remain necessary.
+- The in-memory transport double used by browser-session tests checks challenge identity and one-time use, but is **not** a complete implementation of real server-side signature verification or D1 transactional behavior. Those security properties must be tested against a controlled integrated Worker/D1 fixture before deployment.
+- The older `d1-read-export.ts` adapter is for v1 `sandbox_entries`, not the v2 `sandbox_integrity_entries_v2` history used by the browser orchestration. A dedicated authenticated v2 D1 read/export adapter is still required.
+- No production user-data routes or remote database operations were introduced.
+
 ## Threat model (initial)
 
 Protect against:
