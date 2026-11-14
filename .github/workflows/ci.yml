@@ -68,5 +68,7 @@ jobs:
             exit 1
           fi
 
+      - name: Verify real AES-GCM ciphertext in isolated Wrangler D1
+        run: node scripts/test_d1_local_crypto.mjs
       - name: Typecheck and build
         run: npm run build
