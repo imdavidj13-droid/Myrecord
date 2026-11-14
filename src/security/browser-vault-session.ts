@@ -72,6 +72,12 @@ function randomEntryId(): string {
 }
 
 export class BrowserVaultSessionForTests {
+  // Keep the strongest previously observed head inside this session. This
+  // guards against rollback or substitution during the same browser session.
+  // Cross-device and cross-session anchoring still require a separate trust
+  // mechanism that a backend operator cannot rewrite.
+  private observedRevision = 0;
+  private observedHead = GENESIS_DIGEST_FOR_TESTS;
   // Keys are intentionally non-extractable WebCrypto objects. A page reload
   // drops these references; restoration requires the recovery phrase.
   private constructor(
@@ -160,6 +166,13 @@ export class BrowserVaultSessionForTests {
         verified.headDigest !== history.headDigest) {
       throw new Error("Encrypted history head mismatch.");
     }
+    // Enforce this session's previously observed authenticated history
+    // even if the caller does not supply a separate trust anchor.
+    if (history.entries.length < this.observedRevision ||
+        (this.observedRevision > 0 &&
+          history.entries[this.observedRevision - 1]?.digest !== this.observedHead)) {
+      throw new Error("Encrypted history was rolled back or replaced.");
+    }
     // Decryption authenticates the AES-GCM AAD as well as the digest chain.
     // No plaintext is passed to VaultTransportForTests.
     const entries: PlaintextEntryForTests[] = [];
@@ -170,6 +183,8 @@ export class BrowserVaultSessionForTests {
         text: await decryptIntegrityEntryForTests(this.dataKey, envelope)
       });
     }
+    this.observedRevision = verified.revision;
+    this.observedHead = verified.headDigest;
     return {entries, latestRevision: verified.revision, headDigest: verified.headDigest};
   }
 
