@@ -1,4 +1,4 @@
-# MyRecord
+# MySafeSpace
 
 A privacy-first, **text-only** survivor testimony vault concept.
 
