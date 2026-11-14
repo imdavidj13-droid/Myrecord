@@ -127,31 +127,32 @@ export async function registerVaultD1ForTests(
     throw new Error("Registration authorization denied.");
   }
 
+  // Per-attempt unpredictable marker guarantees a stale challenge cannot
+  // satisfy this registration transaction, even within the same millisecond.
+  const consumeMarker=b64url(crypto.getRandomValues(new Uint8Array(32)));
   // D1 batch runs inside one transaction. Failure at the vault's PK/lookup
   // UNIQUE constraint or the head PK rolls back nonce consumption.
   const claim=db.prepare(`
-    UPDATE sandbox_registration_challenges SET consumed_ms=?
+    UPDATE sandbox_registration_challenges SET consumed_ms=?, consume_marker=?
     WHERE nonce=? AND vault_id=? AND action='append'
       AND issued_ms=? AND expires_ms=? AND consumed_ms IS NULL
       AND issued_ms<=? AND expires_ms>?
-  `).bind(now,challenge.nonce,challenge.vaultId,challenge.issuedAt,
+  `).bind(now,consumeMarker,challenge.nonce,challenge.vaultId,challenge.issuedAt,
     challenge.expiresAt,now+5000,now);
   const vault=db.prepare(`
     INSERT INTO sandbox_vaults(
       vault_id,lookup_id,verification_jwk,wrapped_backup_json
     ) VALUES (
       (SELECT vault_id FROM sandbox_registration_challenges
-        WHERE nonce=? AND vault_id=? AND consumed_ms=?),
+        WHERE nonce=? AND vault_id=? AND consumed_ms=? AND consume_marker=?),
       ?,?,?
     )
-  `).bind(challenge.nonce,backup.vaultId,now,lookupId,
+  `).bind(challenge.nonce,backup.vaultId,now,consumeMarker,lookupId,
     JSON.stringify(backup.verificationKey),stored);
   const head=db.prepare(`
     INSERT INTO sandbox_integrity_heads_v2(vault_id) VALUES(?)
   `).bind(backup.vaultId);
   await db.batch([claim,vault,head]);
-  // D1 batch rejects any failed statement, but a zero-row claim could
-  // otherwise reuse an earlier consumed challenge. The vault insert
-  // requires consumed_ms to equal this attempt's timestamp; the unique
-  // vault ID disallows a second registration.
+  // A zero-row claim cannot pass the vault INSERT's NOT NULL constraint:
+  // its fresh marker cannot exist on an older consumed challenge.
 }
