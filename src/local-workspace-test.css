@@ -1,0 +1,11 @@
+/* Used only by local-test.html; never included by the public index.tsx. */
+.local-workspace-test-banner{background:#f8eee0;color:#324e37;border-bottom:2px solid #a6bba3;padding:14px clamp(16px,3vw,48px);font:13px/1.5 Arial,sans-serif}
+.local-workspace-test-banner strong{font-size:12px;letter-spacing:.05em}
+.local-workspace-test-banner p{margin:4px 0 10px;max-width:900px}
+.local-workspace-test-buttons{display:flex;gap:9px;flex-wrap:wrap}
+.local-workspace-test-buttons button,.local-workspace-test-phrase button{border:1px solid #779878;border-radius:6px;padding:9px 12px;background:#fffef9;color:#284a34;cursor:pointer}
+.local-workspace-test-buttons button:disabled{opacity:.45;cursor:not-allowed}
+.local-workspace-test-phrase{margin-top:12px;padding:12px;border:1px solid #d5bd97;background:#fffaf0;border-radius:7px;max-width:790px}
+.local-workspace-test-phrase p{font:16px/1.7 Georgia,serif;overflow-wrap:anywhere}
+.local-workspace-test-phrase small{display:block;margin-top:8px}
+.local-workspace-test-error{color:#922c2c;font-weight:bold}
