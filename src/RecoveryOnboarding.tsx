@@ -30,7 +30,7 @@ export default function RecoveryOnboarding({
   const [error,setError]=useState("");
   const words=phrase ? phrase.split(" ") : [];
   const generate=()=>{
-    setError("");setConfirmation("");setVisible(false);
+    setError("");setConfirmation("");setVisible(false);setAcknowledged(false);
     try { onPhrase(generateRecoveryWords()); }
     catch { setError("Secure recovery word generation is unavailable on this device."); }
   };
