@@ -55,4 +55,12 @@ const localVite=read("vite.local-test.config.ts");
 assert.ok(localVite.includes('host:"127.0.0.1"') &&
   localVite.includes('target:"http://127.0.0.1:18880"'),
   "Test-only Vite config must remain bound to localhost.");
+const inBrowserVault=read("src/ephemeral-fictional-vault.ts");
+assert.equal(/\\b(fetch|XMLHttpRequest|localStorage|sessionStorage|indexedDB|sendBeacon)\\b/.test(
+  inBrowserVault.replace(/\\/\\*[\\s\\S]*?\\*\\/|\\/\\/[^\\n]*/g,"")
+),false,"Fictional browser vault must never access network or persistent browser storage.");
+const publicMain=read("src/main.tsx");
+assert.ok(publicMain.includes('ExistingSiteTestApp') &&
+  !publicMain.includes("worker-protocol-test"),
+  "Existing-site test mode must remain disconnected from test Worker and production D1.");
 console.log("PASS: test-only Worker configs use fictional D1; public bundle entrypoints and production config are isolated.");
