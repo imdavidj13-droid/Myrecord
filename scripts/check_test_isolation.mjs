@@ -78,6 +78,6 @@ for(const requirement of [
   assert.ok(headers.includes(requirement),
     "Required privacy/security response header is missing: "+requirement);
 }
-assert.equal(/https?:\\/\\/[^\\s"']+/.test(read("src/ephemeral-fictional-vault.ts")),false,
+assert.equal(["https://","http://"].some(v=>read("src/ephemeral-fictional-vault.ts").includes(v)),false,
   "No external HTTP destinations belong in the in-memory vault.");
 console.log("PASS: test-only Worker configs use fictional D1; public bundle entrypoints and production config are isolated.");
