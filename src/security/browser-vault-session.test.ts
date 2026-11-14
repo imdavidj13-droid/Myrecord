@@ -176,7 +176,7 @@ describe("browser vault session composition — synthetic-only boundary",()=>{
     const entered=new Promise<void>(resolve=>{signalEntered=resolve;});
     let release:(result:Awaited<ReturnType<typeof original>>)=>void=()=>{};
     fake.transport.read=async input=>{
-      const result=await original(input);
+      await original(input);
       return new Promise(resolve=>{release=resolve;signalEntered();});
     };
     const pending=session.read();
