@@ -434,3 +434,19 @@ html,body,#root{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
   .header-test-status{display:none}
   .header-test-button{padding:7px 9px;font-size:11px}
 }
+
+
+/* Public, static, age-inclusive support page. No personal information inputs. */
+.support-page{width:100%;max-width:1400px;margin:auto;padding:clamp(25px,4vw,66px);color:#2d4a39}
+.support-page-intro{max-width:900px;margin-bottom:35px}
+.support-page-intro .eyebrow{display:inline-flex;align-items:center;gap:9px}
+.support-page-intro h1{font-size:clamp(38px,4vw,60px);margin:20px 0}
+.support-page-intro p{max-width:800px;font-size:15px}
+.support-page-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.support-resource{background:#fffdf7;border:1px solid #dce5d9;border-radius:12px;padding:24px;display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.support-resource-label{display:flex;align-items:center;gap:8px;color:#607967;font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:700}
+.support-resource h2{font-size:clamp(24px,2vw,33px);margin:0}
+.support-resource p{font-size:14px;line-height:1.7;flex:1}
+.support-resource a{display:inline-flex;align-items:center;gap:7px;color:#255639;text-underline-offset:4px;font-size:13px;font-weight:700}
+.support-page-note{margin-top:20px;font-size:12px;line-height:1.7;color:#60746a}
+@media(max-width:850px){.support-page-grid{grid-template-columns:1fr}.support-resource{padding:20px}}
