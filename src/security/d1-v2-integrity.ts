@@ -36,7 +36,7 @@ function decodeSignature(value: string): ArrayBuffer {
     throw new Error("Malformed integrity signature.");
   }
   const padded = value.replace(/-/g, "+").replace(/_/g, "/") + "==";
-  const bytes = Uint8Array.from(atob(padded), char => char.charCodeAt(0));
+  const bytes = Uint8Array.from(Array.from(atob(padded), char => char.charCodeAt(0)));
   if (bytes.length !== 64 || encode64(bytes) !== value) {
     throw new Error("Malformed integrity signature.");
   }
