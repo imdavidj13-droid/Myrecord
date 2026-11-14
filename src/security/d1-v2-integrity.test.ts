@@ -5,6 +5,7 @@ import {createWrappedSigningCredentialForTests} from "./signing-recovery";
 import {encryptIntegrityEntryForTests, decryptIntegrityEntryForTests,GENESIS_DIGEST_FOR_TESTS} from "./integrity-chain";
 import {
   signIntegrityAppendForTests,appendIntegrityEntryD1ForTests,
+  initializeIntegrityHeadD1ForTests,
   issueIntegrityAppendChallengeD1ForTests,verifyD1IntegrityHistoryForTests
 } from "./d1-v2-integrity";
 import {issueChallengeForTests} from "./access-proof";
@@ -59,6 +60,13 @@ describe("isolated v2 integrity D1 adapter",()=>{
     expect(mock.statements.some(x=>x.params.includes(f.first.previousDigest))).toBe(true);
     expect(mock.statements.some(x=>x.params.includes(f.first.digest))).toBe(true);
     expect(JSON.stringify(mock.statements)).not.toContain("Fictional entry 1");
+  });
+
+  it("initializes a v2 chain head for an existing registered test vault",async()=>{
+    const f=await fixture(),mock=dbMock(f.signing.envelope.publicKey);
+    await initializeIntegrityHeadD1ForTests(mock.db,f.data.envelope.vaultId);
+    expect(mock.statements.some(x=>x.sql.includes("sandbox_integrity_heads_v2"))).toBe(true);
+    expect(mock.batches()).toBe(0);
   });
 
   it("accepts a correctly chained second record at signature and validation layer",async()=>{
