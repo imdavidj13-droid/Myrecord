@@ -246,6 +246,15 @@ Test-only files: `docs/D1_REGISTRATION_PROTOTYPE.sql`, `src/security/d1-registra
 - Only `wrangler.d1-test.jsonc` and `--local` commands are used. The real `mysafespace-db` is not accessed. No production Worker handlers are enabled.
 - Verify GitHub Actions after the latest commit before reporting these new checks as passing.
 
+## Phase 19 — connected fictional website demo (no testimony entry)
+
+- Added `src/DemoJourney.tsx` and `src/demo.css`, reachable from the homepage and navigation at `/demo`.
+- The demonstration links welcome, numbered placeholder recovery labels, confirmation, dashboard, four writing-mode layouts (free, journal, guided, focus), fictional revision history, and readable sample JSON export.
+- All entries are fixed, invented strings selected by clicking "Add this fictional entry". The demo has **no free-text testimony input**, no real 12-word phrase, no encryption-key generation, no localStorage/sessionStorage, no API calls, and no D1 operations. State is React memory only, reset on refresh.
+- The export preview is illustrative JSON and **not** an evidence certificate, authenticated record, timestamp, or actual downloaded archive.
+- Existing prototype screens and code remain unchanged. The live site may display this isolated demo after Cloudflare builds; this does **not** activate real vault accounts or real testimony storage.
+- This milestone is visual/UX integration only. Production work still requires reviewed cryptography, operational access protocols, complete deletion handling, UK privacy/safeguarding assessments, and independent security auditing.
+
 ## Threat model (initial)
 
 Protect against:
