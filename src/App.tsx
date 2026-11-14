@@ -26,7 +26,7 @@ export default function App(){
   return <div className={`site screen-${screen} ${mode==="focus"&&screen==="write"?"focus-site":""}`}>
     <div className="demo-strip"><ShieldAlert size={15}/><strong>DESIGN PROTOTYPE</strong><span>Not encrypted or saved. Do not enter real experiences or identifying details.</span></div>
     <header className="site-header">
-      <button className="brand" onClick={()=>go("home")} aria-label="MyRecord home"><span className="brand-icon"><LockKeyhole size={27} strokeWidth={1.7}/></span><span>MyRecord</span></button>
+      <button className="brand" onClick={()=>go("home")} aria-label="MySafeSpace home"><span className="brand-icon"><LockKeyhole size={27} strokeWidth={1.7}/></span><span>MySafeSpace</span></button>
       <nav className={mobileMenu?"open":""} aria-label="Main navigation">
         <button onClick={()=>go("before")}>How it works</button>
         <button onClick={()=>go("before")}>Your privacy</button>
