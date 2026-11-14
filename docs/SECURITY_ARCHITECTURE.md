@@ -1,0 +1,77 @@
+# MySafeSpace — Security Architecture: Development Phase 1
+
+Status: **NOT APPROVED FOR REAL TESTIMONY / NOT PRODUCTION-SECURE**  
+Date: 2026-11-14
+
+## Scope of this phase
+
+Implemented:
+
+- A standalone, browser-side AES-256-GCM encrypt/decrypt **primitive** for synthetic data (not called by the application).
+- Non-extractable transient AES-GCM keys generated using Web Crypto secure randomness.
+- Fresh 96-bit IVs for each encryption operation and a 128-bit authentication tag.
+- Versioned ciphertext envelopes, context-bound authenticated associated data, strict input validation and size limits.
+- Tests for round trips, integrity failure, wrong keys, distinct IVs and non-exportability.
+- Deployment header rules in `public/_headers` for **Cloudflare Pages static assets**; actual response headers must be inspected on the deployed service. Workers deployments may need headers enforced in worker responses instead.
+- Tests run before the build in GitHub Actions.
+
+This module is **not** wired into the editor, does not write any data to a server, and is not a complete zero-access vault. The 12-word screen is still UI-only.
+
+## Threat model (initial)
+
+Protect against:
+
+1. Public browsing or enumeration of another survivor's records.
+2. Theft of database and blob storage contents.
+3. A curious or malicious administrator with storage access.
+4. Credential guessing and recovery-token replay.
+5. Exposure of plaintext through analytics, logs, third-party scripts, caches and accident-prone client persistence.
+6. Tampering with encrypted records or their original chronological history.
+7. Malicious modification of deployed JavaScript, dependencies or release pipelines.
+8. Exposure through shared or monitored devices, browser history, device downloads, and metadata.
+9. Accidental data loss due to unavailable storage, lost recovery phrases or incomplete backups.
+10. Legal retention demands, abuse reporting and safeguarding incidents.
+
+Out of scope of a privacy *guarantee*: compromised client devices, keylogging, malicious browser extensions, unsafe downloads, coercion, or an attacker who replaces served client code. These risks need explicit survivor-facing explanations.
+
+## Future cryptographic protocol — requires design review
+
+Do **not** integrate the transient-key prototype into persistent vaults. The real protocol must decide and document:
+
+- 12-word phrase encoding, entropy, checksum, robust secret parsing and documented compatibility.
+- How a phrase relates to an opaque vault locator **without putting the secret in URL, referrer, browser history or server logs**.
+- Authenticated anonymous vault access without exposing a reusable decryption credential to the server.
+- Independent data-encryption keys per entry, and a reviewed key hierarchy and key-wrapping scheme.
+- Migration, versioning, IV uniqueness, authenticated metadata, and rollback/replay protection.
+- Append-only originals with verifiable hashes and accurate timestamp semantics.
+- Key loss, recovery-word confirmation, deliberate session lock, and safe failure behaviour.
+- Authenticated deletion, retention and disaster recovery without operator access to plaintext.
+- Secure export for survivor-directed police sharing, without automatic reporting.
+
+Do not build a homemade phrase-to-AES direct-key conversion. A fast cryptographic hash of a passphrase is **not** an acceptable replacement for a reviewed recovery architecture. Avoid adding a backend until this protocol, the authenticated request model and an independent review plan are documented.
+
+## Current handling of writing
+
+The existing React editor stores plaintext in memory **only during the current tab session**. It is **not encrypted or saved** and has no API. It is intentionally marked **DESIGN PROTOTYPE**. Do not enter real testimony, names, or identifying details. A refresh loses the draft; navigating within the SPA may retain it temporarily.
+
+## Deployment security checklist
+
+- Confirm whether the hosting target is Cloudflare Pages or a Worker serving static assets.
+- Inspect actual response headers at the live URL; `_headers` applies to Pages static assets but is **not** a universal guarantee for Workers.
+- Confirm HTTPS, HSTS, CSP, no-frame policy, referrer restrictions and no-store behaviour.
+- Test direct routes (/write, /vault, /return) on refresh.
+- Audit for third-party scripts/requests, logs, data sent to endpoints and embedded content.
+- Pin dependencies and use a reviewed deployment pipeline with branch protection and MFA.
+- Run automated tests in CI; independently test browser compatibility, security headers and integrity failures.
+- Obtain external cryptography assessment, penetration testing, legal review and a DPIA before enabling storage of sensitive data.
+
+## Hard launch gate
+
+No real testimony or files until the complete design passes independent technical review and the UK's data-protection/safeguarding obligations are addressed.
+
+## References
+
+- https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html
+- https://cheatsheetseries.owasp.org/cheatsheets/Key_Management_Cheat_Sheet.html
+- https://developers.cloudflare.com/pages/configuration/headers/
+- https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt
