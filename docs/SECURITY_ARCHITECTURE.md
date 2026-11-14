@@ -255,6 +255,15 @@ Test-only files: `docs/D1_REGISTRATION_PROTOTYPE.sql`, `src/security/d1-registra
 - Existing prototype screens and code remain unchanged. The live site may display this isolated demo after Cloudflare builds; this does **not** activate real vault accounts or real testimony storage.
 - This milestone is visual/UX integration only. Production work still requires reviewed cryptography, operational access protocols, complete deletion handling, UK privacy/safeguarding assessments, and independent security auditing.
 
+## Phase 20 — first real onboarding component, still no vault registration
+
+- Replaced the placeholder recovery-word and confirmation panels in the existing MySafeSpace application routes with `src/RecoveryOnboarding.tsx`. This is **not a standalone demo**.
+- The browser can now use the established CSPRNG-backed BIP39 generator to create a valid 12-word phrase, conceal/reveal it, and locally compare all twelve words in order on the next screen.
+- Acknowledgement resets when words are regenerated. Recovery words live only in React memory, never enter URLs, network requests or persistent browser storage, and are cleared when leaving onboarding or completing local confirmation. The component is never connected to D1.
+- The destination vault screen explains that completing local confirmation does **not** create an account, store records or make these words useful for future recovery.
+- The page retains the security warning and must not be marketed as an enabled evidence service or used to collect real testimony. Real vault registration must remain disabled pending independent assessment and completion of the secure protocol.
+- This is a frontend integration milestone; passing CI after these commits must be verified separately.
+
 ## Threat model (initial)
 
 Protect against:
