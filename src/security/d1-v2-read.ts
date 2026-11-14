@@ -44,7 +44,7 @@ function signedBytes(challenge:ProofChallengeV1,action:"read"|"export"):ArrayBuf
 function signatureBytes(raw:string):ArrayBuffer {
   if(typeof raw!=="string"||!signaturePattern.test(raw))throw new Error("Invalid history signature.");
   const normalized=raw.replace(/-/g,"+").replace(/_/g,"/")+"==";
-  const bytes=Uint8Array.from(atob(normalized),char=>char.charCodeAt(0));
+  const bytes=Uint8Array.from(Array.from(atob(normalized), char => char.charCodeAt(0)));
   if(bytes.length!==64||b64url(bytes)!==raw)throw new Error("Invalid history signature.");
   return buffer(bytes);
 }
