@@ -151,6 +151,19 @@ The helper returns only the signed registration payload and encrypted/public met
 
 **Security boundary:** This is an honest-client check, not a cryptographic proof to the server that the recovery phrase matches the lookup ID. A malicious or modified client can skip it and register irrecoverable or deliberately inconsistent data. A real protocol still needs recovery-confirmation UX, server acceptance criteria, secure frontend distribution, transactionally consistent registration and independent cryptographic review. The current test-only data encryption also does not authenticate vault/revision metadata, so evidence integrity remains incomplete.
 
+## Phase 10 — D1 atomic ciphertext append prototype (non-deployed)
+
+Files: `docs/D1_TRANSACTIONAL_PROTOTYPE.sql`, `src/security/d1-transaction.ts`, `src/security/d1-transaction.test.ts`, and `scripts/test_d1_schema.py`.
+
+- Draft SQLite/D1 schema has immutable registered verification keys and encrypted recovery backups, unique challenge nonces and consumed-nonce constraints, ciphertext-only rows and trigger-enforced sequential append revisions.
+- The append prototype signs an exact canonical request (vault, challenge, entry ID, revision and encrypted envelope); the verifier loads the **registered public key from D1**, rather than trusting a caller-supplied key.
+- A request digest is persisted when issuing a challenge. Later append executes `D1.batch([claim nonce, insert ciphertext])`. A missing/expired/mismatched challenge, replay, duplicate revision or trigger violation aborts the transaction. No plaintext or phrase goes into SQL.
+- The challenge issuance step checks that exactly one row was inserted, failing closed for an unknown vault.
+- Tests exercise request tampering, wrong verification keys, expired authorization, simulated batch failures, and SQL constraints. SQLite regression tests are also added to GitHub Actions.
+- **No D1 database binding is configured, no schema is applied to any Cloudflare database, no API endpoint is exposed and no survivor data is handled.**
+
+**Unresolved:** D1 concurrency and batch semantics must be tested against a dedicated disposable Cloudflare D1 test database, and errors/race conditions evaluated. The prototype has no secure atomic registration path or authenticated read/export/delete API. Secure challenge delivery requires an abuse-resistant endpoint, rate limits and metadata minimization. Signed append fields are still **not bound inside the entry AES-GCM AAD**, and operator-independent rollback/omission detection remains unsolved. The schema and adapter must receive independent technical review before any real-data deployment.
+
 ## Threat model (initial)
 
 Protect against:
