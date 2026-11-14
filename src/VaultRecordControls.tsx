@@ -3,7 +3,7 @@
  * Never mounted on the public site without an injected session.
  * Exports contain readable fictional text and should be handled locally.
  */
-import {useState} from "react";
+import {useEffect,useRef,useState} from "react";
 import {Download, LockKeyhole, ShieldAlert, Trash2} from "lucide-react";
 import type {VaultWorkspaceController, WorkspaceSnapshot} from "./vault-workspace";
 import {serializeVerifiedExportForTests} from "./security/verified-export";
@@ -15,22 +15,35 @@ type Props={
 const confirmation="MARK FICTIONAL VAULT PENDING";
 export default function VaultRecordControls({controller,snapshot}:Props) {
   const [exportJson,setExportJson]=useState<string|null>(null);
+  const exportGeneration=useRef(0);
   const [pending,setPending]=useState(false);
   const [confirmText,setConfirmText]=useState("");
   const [error,setError]=useState<string|null>(null);
   const [notice,setNotice]=useState<string|null>(null);
   const busy=["loading","saving","exporting","deleting"].includes(snapshot.phase);
   const ready=snapshot.phase==="ready";
+  // A prepared readable copy must not survive revision changes, session
+  // closure, or a replacement vault session.
+  useEffect(()=>{
+    exportGeneration.current++;
+    setExportJson(null);
+    setNotice(null);
+  },[snapshot.headDigest,snapshot.revision,snapshot.phase==="closed"||snapshot.phase==="locked"]);
   const prepareExport=async()=>{
     setError(null);setNotice(null);setExportJson(null);
+    const generation=++exportGeneration.current;
+    const previousHead=snapshot.headDigest;
     try {
       const result=await controller.exportVerifiedHistory();
+      if(generation!==exportGeneration.current || controller.getSnapshot().phase!=="ready" ||
+         controller.getSnapshot().headDigest!==previousHead) return;
       setExportJson(serializeVerifiedExportForTests(result));
       setNotice("A complete fictional test export is prepared locally. Download only if you intend to keep a readable file.");
     }catch(e) {setError(e instanceof Error?e.message:"Export failed.");}
   };
   const download=()=>{
-    if(!exportJson) return;
+    if(!exportJson || !ready || controller.getSnapshot().phase!=="ready" ||
+       controller.getSnapshot().headDigest!==snapshot.headDigest) return;
     const url=URL.createObjectURL(new Blob([exportJson],{type:"application/json;charset=utf-8"}));
     try {
       const anchor=document.createElement("a");
@@ -39,7 +52,9 @@ export default function VaultRecordControls({controller,snapshot}:Props) {
     }finally {setTimeout(()=>URL.revokeObjectURL(url),1000);}
   };
   const deletion=async()=>{
-    if(confirmText!==confirmation)return;
+    if(confirmText!==confirmation || !ready || busy)return;
+    exportGeneration.current++;
+    setExportJson(null);
     setError(null);
     try {
       await controller.markDeletionPending();
