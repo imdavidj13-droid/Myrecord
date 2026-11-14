@@ -11,9 +11,11 @@
  */
 import type { EncryptedStoredEntry } from "./synthetic-vault-store";
 import type { ProofChallengeV1 } from "./access-proof";
+import { importVerificationKeyForTests } from "./access-proof";
 
 export interface PrototypeD1Statement {
   bind(...args: Array<string | number>): PrototypeD1Statement;
+  first<T>(): Promise<T | null>;
 }
 export interface PrototypeD1Database {
   prepare(query: string): PrototypeD1Statement;
@@ -135,7 +137,6 @@ export async function verifyBoundAppendForTests(
  */
 export async function appendCiphertextD1ForTests(
   db: PrototypeD1Database,
-  publicKey: CryptoKey,
   challenge: ProofChallengeV1,
   entry: EncryptedStoredEntry,
   proof: BoundAppendProofV1,
@@ -144,7 +145,23 @@ export async function appendCiphertextD1ForTests(
   validate(challenge, entry);
   if (!Number.isSafeInteger(now) || now < challenge.issuedAt - 5000 ||
       now >= challenge.expiresAt) throw new Error("Expired append authorization.");
-  if (!await verifyBoundAppendForTests(publicKey, challenge, entry, proof)) {
+  // Load the trusted registered key from D1, never accept it from the request.
+  const registered = await db.prepare(
+    "SELECT verification_jwk FROM sandbox_vaults WHERE vault_id = ? AND status = 'active'"
+  ).bind(challenge.vaultId).first<{ verification_jwk: string }>();
+  if (!registered || typeof registered.verification_jwk !== "string" ||
+      registered.verification_jwk.length > 2048) {
+    throw new Error("Unknown or disabled vault.");
+  }
+  let verifier: CryptoKey;
+  try {
+    verifier = await importVerificationKeyForTests(
+      JSON.parse(registered.verification_jwk) as JsonWebKey
+    );
+  } catch {
+    throw new Error("Invalid registered verification key.");
+  }
+  if (!await verifyBoundAppendForTests(verifier, challenge, entry, proof)) {
     throw new Error("Invalid append authorization.");
   }
   const requestDigest = await digestAppendIntentForTests(challenge, entry);
