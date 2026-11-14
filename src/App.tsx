@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, BookOpen, Check, ChevronDown, CircleHelp, Download, EyeOff, Feather, FileText, Focus, Heart, KeyRound, Leaf, LockKeyhole, Menu, PenLine, ShieldCheck, ShieldAlert, Sparkles, Trash2, X } from "lucide-react";
+import { ArrowRight, BookOpen, ChevronDown, CircleHelp, Download, EyeOff, Feather, Focus, Heart, KeyRound, Leaf, LockKeyhole, Menu, PenLine, ShieldCheck, ShieldAlert, Sparkles, Trash2, X } from "lucide-react";
 
 type Screen = "home" | "before" | "recovery" | "confirm" | "write" | "vault" | "return" | "export";
 type Mode = "free" | "journal" | "guided" | "focus";
