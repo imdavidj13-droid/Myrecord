@@ -47,6 +47,36 @@ describe("P2 actual App route wiring — no public storage session",()=>{
       expect(markup).not.toContain("View vault preview");
     } finally {controller.close();vi.unstubAllGlobals();}
   });
+  it("renders working writing, vault and export navigation without a duplicate top banner",()=>{
+    vi.stubGlobal("window",{location:{pathname:"/"}});
+    try {
+      const markup=renderToStaticMarkup(createElement(ExistingSiteTestApp));
+      expect(markup).toContain("Writing space");
+      expect(markup).toContain("My vault");
+      expect(markup).toContain("Open writing space");
+      expect(markup).toContain("Start test");
+      expect(markup).not.toContain("Fictional test mode — not a secure records service");
+    } finally {vi.unstubAllGlobals();}
+  });
+  it("shows actual fictional export and in-tab erasure controls instead of unavailable preview cards",async()=>{
+    const controller=new VaultWorkspaceController();
+    const session:WorkspaceSession={
+      read:async()=>({entries:[],latestRevision:0,headDigest:"0".repeat(64)}),
+      appendSyntheticText:async()=>({entries:[],latestRevision:0,headDigest:"0".repeat(64)}),
+      export:async()=>({entries:[],latestRevision:0,headDigest:"0".repeat(64)}),
+      eraseEphemeralForTests:async()=>{}
+    };
+    await controller.unlock(session);
+    vi.stubGlobal("window",{location:{pathname:"/export"}});
+    try {
+      const markup=renderToStaticMarkup(createElement(App,{
+        workspace:controller,onStartTest:()=>{},onEndTest:()=>{}
+      }));
+      expect(markup).toContain("Prepare fictional export");
+      expect(markup).toContain("Erase this fictional test vault");
+      expect(markup).not.toContain(">Unavailable</button>");
+    } finally {controller.close();vi.unstubAllGlobals();}
+  });
   it("keeps public recovery unavailable and only renders fictional recovery with explicit injection",()=>{
     vi.stubGlobal("window",{location:{pathname:"/return"}});
     try {
