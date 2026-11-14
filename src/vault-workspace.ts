@@ -103,10 +103,15 @@ export class VaultWorkspaceController {
     if(this.busy)throw new Error("Another vault operation is in progress.");
     if(this.session && this.state.phase!=="closed")throw new Error("Vault already unlocked.");
     this.session=session;
+    const openingGeneration=this.generation;
     try {
       await this.operate("loading",()=>session.read(),result=>this.ready(result));
     } catch {
-      this.close();
+      // An earlier, cancelled unlock must not close a subsequently opened
+      // session. Its original key handle was already closed by close().
+      if(this.session===session && this.generation===openingGeneration) {
+        this.close();
+      }
       throw new Error("Vault could not be unlocked.");
     }
   }
