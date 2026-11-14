@@ -355,6 +355,16 @@ Test-only files: `docs/D1_REGISTRATION_PROTOTYPE.sql`, `src/security/d1-registra
 - No production recovery API, public storage activation or sensitive data entry is authorized. A usable browser-based test still requires a separately controlled local harness that explicitly injects a fictional adapter; test-only components alone are not a public service.
 - Green CI must be confirmed for the final commit. Separate review remains required for cryptography, evidence retention, erasure, safeguarding, and operational security.
 
+## Phase 31 — existing-site fictional writing integration (2026-11-14)
+
+- The actual `src/main.tsx` now mounts `ExistingSiteTestApp`, which presents conspicuous **fictional test only** controls on the existing MySafeSpace website. It does **not** create a database, a staging deployment, a Worker endpoint, or a new project.
+- `src/ephemeral-fictional-vault.ts` creates a fresh non-extractable AES-256-GCM key and stores version-2 ciphertext envelopes with integrity digests **only in JavaScript memory within the current tab**. It implements the existing controller contract and gives the real `/write`, `/vault`, and `/export` screens functional fictional save/history/export paths.
+- **No actual record survives a refresh, page exit, or session closure.** No permanent storage, recovery words, D1 access, audit trail, independent trusted head, or physical deletion is provided in this on-site mode. Its "close" action clears local ciphertext references; key handles are released for eventual garbage collection, not guaranteed wiped.
+- `src/ephemeral-fictional-vault.test.ts` verifies two encrypted fictional entries, history, export, closure and disabled deletion.
+- This **does not complete P1**. The signed registration/recovery and D1 work remain isolated experimental code. Production persistence, consent, threat model, independent cryptographic review, and safeguarding controls remain mandatory for actual personal testimony.
+- Never describe the existing site as safely accepting real experiences. Visible UI must continue to advise against entering any real or identifying content.
+- Confirm GitHub CI and Cloudflare deployment separately. GitHub passing tests does not by itself prove that Cloudflare has deployed the latest commit.
+
 ## Threat model (initial)
 
 Protect against:
