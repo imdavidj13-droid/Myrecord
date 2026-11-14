@@ -5,6 +5,7 @@ import { createWrappedVaultKeyForTests, unwrapVaultKeyForTests } from "./key-wra
 import { createWrappedSigningCredentialForTests, recoverSigningCredentialForTests } from "./signing-recovery";
 import { encryptSyntheticEntry, decryptSyntheticEntry } from "./crypto";
 import { signChallengeForTests } from "./access-proof";
+import { signRegistrationIntentForTests } from "./registration-intent";
 import { SyntheticVaultStoreForTests, type SyntheticVaultBackup } from "./synthetic-vault-store";
 
 const now = 1_783_000_000_000;
@@ -26,7 +27,10 @@ async function createFixture() {
 async function register(store: SyntheticVaultStoreForTests, fixture: Awaited<ReturnType<typeof createFixture>>) {
   const issued = store.issueRegistrationChallenge(fixture.backup.vaultId, now);
   const signed = await signChallengeForTests(fixture.signing.privateKey, issued);
-  await store.register(fixture.backup, signed, now + 1, fixture.lookupId);
+  const intent = await signRegistrationIntentForTests(
+    fixture.signing.privateKey, issued, fixture.backup, fixture.lookupId
+  );
+  await store.register(fixture.backup, signed, now + 1, fixture.lookupId, intent);
 }
 
 describe("isolated 12-word recovery bootstrap — synthetic data only", () => {
@@ -89,7 +93,10 @@ describe("isolated 12-word recovery bootstrap — synthetic data only", () => {
     const other = await createFixture();
     const challenge = store.issueRegistrationChallenge(other.backup.vaultId, now);
     const proof = await signChallengeForTests(other.signing.privateKey, challenge);
-    await expect(store.register(other.backup, proof, now + 1, f.lookupId)).rejects.toThrow();
+    const intent = await signRegistrationIntentForTests(
+      other.signing.privateKey, challenge, other.backup, other.lookupId
+    );
+    await expect(store.register(other.backup, proof, now + 1, f.lookupId, intent)).rejects.toThrow();
   });
 
   it("removes the lookup index after authorized test deletion", async () => {
