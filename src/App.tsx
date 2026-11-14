@@ -1,3 +1,4 @@
+import RecoveryOnboarding from "./RecoveryOnboarding";
 import { useEffect, useState } from "react";
 import { ArrowRight, CheckCircle2, FileText, Info, Scale, UserRoundX, UsersRound, BookOpen, ChevronDown, Download, EyeOff, Feather, Focus, Heart, KeyRound, LockKeyhole, Menu, PenLine, ShieldCheck, ShieldAlert, Sparkles, Trash2, X } from "lucide-react";
 
@@ -27,7 +28,8 @@ export default function App(){
   const [support,setSupport]=useState(true);
   const [promptOpen,setPromptOpen]=useState(true);
   const [message,setMessage]=useState(0);
-  const [ack,setAck]=useState(false);
+  const [recoveryPhrase,setRecoveryPhrase]=useState("");
+  const [onboardingConfirmed,setOnboardingConfirmed]=useState(false);
   const [mobileMenu,setMobileMenu]=useState(false);
   useEffect(() => {
     const onPopState = () => {
@@ -42,7 +44,7 @@ export default function App(){
     setScreen(page);
     setMobileMenu(false);
   };
-  const quit=()=>{setWriting("");setAck(false);window.location.replace("about:blank");};
+  const quit=()=>{setWriting("");setRecoveryPhrase("");setOnboardingConfirmed(false);window.location.replace("about:blank");};
   const modeNames:Record<Mode,string>={free:"Free writing",journal:"Journal",guided:"Guided writing",focus:"Focus mode"};
   return <div className={`site screen-${screen} ${mode==="focus"&&screen==="write"?"focus-site":""}`}>
     <div className="demo-strip"><ShieldAlert size={15}/><strong>DESIGN PROTOTYPE</strong><span>Not encrypted or saved. Do not enter real experiences or identifying details.</span></div>
@@ -104,33 +106,37 @@ export default function App(){
   </div>
   <aside className="experience-scene" aria-hidden="true"><div className="scene-light"/><Botanical className="experience-botanical"/><div className="scene-journal"><div className="scene-journal-ribbon"/><div className="scene-journal-lines"/></div><div className="scene-cup"/><div className="scene-note"><span className="quote-mark">“</span><p>You can take this one step at a time.</p></div></aside>
 </section>}
-    {screen==="recovery"&&<section className="experience-page">
+    {(screen==="recovery"||screen==="confirm")&&<section className="experience-page">
   <div className="experience-main">
-    <div className="experience-intro"><Step count="02" label="RECOVERY WORDS"/><span className="eyebrow">THE KEY BELONGS TO YOU <span className="eyebrow-line"/></span><h1>A way back to<br/><em>your private words.</em></h1><p className="lead">The finished service will generate 12 secure recovery words on your own device. The words below are intentionally hidden placeholders.</p></div>
-    <div className="experience-recovery">
-      <div className="experience-word-grid">{Array.from({length:12},(_,i)=><div className="word-placeholder" key={i}><small>{String(i+1).padStart(2,"0")}</small><span>••••••••</span></div>)}</div>
-      <div className="warning-box"><ShieldAlert size={21}/><div><strong>Without your recovery words, you could lose access permanently.</strong><p>Leaving without saving them, or losing them later, may mean nobody can retrieve your record — including us.</p></div></div>
-      <label className="acknowledge"><input type="checkbox" checked={ack} onChange={e=>setAck(e.target.checked)}/> I understand that my record may be unrecoverable without these words.</label>
+    <div className="experience-intro">
+      <Step count={screen==="recovery"?"02":"03"} label={screen==="recovery"?"RECOVERY WORDS":"CONFIRM YOUR WORDS"}/>
+      <span className="eyebrow">THE KEY BELONGS TO YOU <span className="eyebrow-line"/></span>
+      <h1>{screen==="recovery"?"A way back to":"Keep your words"}<br/><em>{screen==="recovery"?"your private words.":"somewhere safe."}</em></h1>
+      <p className="lead">This browser-only onboarding stage generates and checks a recovery phrase locally. No vault is created and nothing is stored on a server yet.</p>
     </div>
-    <div className="experience-actions"><button className="button" disabled={!ack} onClick={()=>go("confirm")}>Continue to confirmation <ArrowRight size={18}/></button><button className="text-link" onClick={()=>go("before")}>Go back <ArrowRight size={16}/></button></div>
+    <RecoveryOnboarding
+      key={screen}
+      phase={screen==="recovery"?"generate":"confirm"}
+      phrase={recoveryPhrase}
+      onPhrase={setRecoveryPhrase}
+      onStart={()=>setOnboardingConfirmed(false)}
+      onBack={()=>go(screen==="recovery"?"confirm":"recovery")}
+      onClear={()=>{setRecoveryPhrase("");setOnboardingConfirmed(false);}}
+      onConfirm={()=>{
+        setRecoveryPhrase("");
+        setOnboardingConfirmed(true);
+        go("vault");
+      }}
+    />
+    {screen==="recovery"&&<button className="text-link" onClick={()=>{setRecoveryPhrase("");go("before");}}>Go back <ArrowRight size={16}/></button>}
   </div>
   <aside className="experience-scene" aria-hidden="true"><div className="scene-light"/><Botanical className="experience-botanical"/><div className="scene-journal"><div className="scene-journal-ribbon"/><div className="scene-journal-lines"/></div><div className="scene-cup"/><div className="scene-note"><span className="quote-mark">“</span><p>Your privacy is part of every step.</p></div></aside>
-</section>}
-    {screen==="confirm"&&<section className="experience-page">
-  <div className="experience-main">
-    <div className="experience-intro"><Step count="03" label="CONFIRM YOUR WORDS"/><span className="eyebrow">A CAREFUL FINAL CHECK <span className="eyebrow-line"/></span><h1>Keep your words<br/><em>somewhere safe.</em></h1><p className="lead">When secure recovery is implemented, we'll ask you to confirm all 12 words in their original order before you begin writing.</p></div>
-    <div className="experience-recovery">
-      <div className="experience-word-grid">{Array.from({length:12},(_,i)=><div className="word-placeholder" key={i}><small>{String(i+1).padStart(2,"0")}</small><span>—</span></div>)}</div>
-      <div className="mini-alert"><ShieldAlert size={18}/> This is a design preview. No recovery phrase has been generated or checked.</div>
-    </div>
-    <div className="experience-actions"><button className="button" onClick={()=>go("write")}>Explore your writing space <ArrowRight size={18}/></button><button className="text-link" onClick={()=>go("recovery")}>Go back <ArrowRight size={16}/></button></div>
-  </div>
-  <aside className="experience-scene" aria-hidden="true"><div className="scene-light"/><Botanical className="experience-botanical"/><div className="scene-journal"><div className="scene-journal-ribbon"/><div className="scene-journal-lines"/></div><div className="scene-cup"/><div className="scene-note"><span className="quote-mark">“</span><p>When you're ready, your page is here.</p></div></aside>
 </section>}
     {screen==="write"&&<section className="writer-page"><div className="writer-head"><div><div className="eyebrow"><span className="eyebrow-line"/> YOUR PRIVATE WRITING SPACE</div><h1>What would you like<br/><em>to remember?</em></h1><p>You can begin wherever feels right. There is no perfect way to put something into words.</p></div><div className="writer-privacy"><ShieldCheck size={19}/><div><strong>Preview only</strong><span>Not encrypted or saved</span></div></div></div><div className="mode-bar"><div className="mode-tabs" role="group" aria-label="Writing mode">{(["free","journal","guided","focus"] as Mode[]).map(m=><button className={mode===m?"selected":""} aria-pressed={mode===m} onClick={()=>{setMode(m);if(m==="focus")setSupport(false);else setSupport(true)}} key={m}>{m==="free"?<PenLine size={16}/>:m==="journal"?<BookOpen size={16}/>:m==="guided"?<Sparkles size={16}/>:<Focus size={16}/>} {modeNames[m]}</button>)}</div>{mode!=="focus"&&<button className="subtle-button" onClick={()=>setSupport(!support)}>{support?"Hide":"Show"} encouragement <ChevronDown size={15}/></button>}</div><div className={`writing-layout ${!support||mode==="focus"?"solo":""}`}><section className={`writing-card ${mode==="journal"?"journal-card":""}`}><div className="editor-top"><span><Feather size={17}/> A PAGE OF YOUR OWN</span><span className="unsaved-dot"/> Unsaved · this page only</div>{mode==="guided"&&<div className="guide-in-editor"><span className="eyebrow">A GENTLE PLACE TO START</span><h3>You can begin with what you remember.</h3><p>If it helps, think about what you most want to put into words today.</p></div>}<label className="sr-only" htmlFor="record-entry">Your writing</label><textarea id="record-entry" spellCheck={false} value={writing} onChange={e=>setWriting(e.target.value)} placeholder="You can begin here, in your own words...\n\nThere's no rush. Write as much or as little as you wish."/><div className="editor-bottom"><span>{writing.trim()?writing.trim().split(/\s+/).length:0} words · Unsaved</span><div><button className="text-link" onClick={()=>setWriting("")}>Clear sample</button><button className="button" onClick={()=>go("vault")}>View vault preview <ArrowRight size={16}/></button></div></div></section>{support&&mode!=="focus"&&<aside className="support-column"><div className="encouragement-card"><span className="eyebrow"><Heart size={14}/> A GENTLE REMINDER</span><span className="quote-mark">“</span><h3>{reassurances[message].title}</h3><p>{reassurances[message].body}</p><button className="quiet-next" onClick={()=>setMessage((message+1)%reassurances.length)}>Another gentle reminder <ArrowRight size={15}/></button><Botanical className="support-botanical"/></div><div className="prompt-card"><button className="prompt-header" onClick={()=>setPromptOpen(!promptOpen)} aria-expanded={promptOpen}><span><Sparkles size={18}/> Optional writing prompts</span><ChevronDown size={17}/></button>{promptOpen&&<><p>Only if they feel helpful. You can ignore every one of them.</p>{prompts.map((prompt,i)=><div className="prompt-line" key={i}><span>{String(i+1).padStart(2,"0")}</span>{prompt}</div>)}</>}</div><div className="privacy-mini"><LockKeyhole size={18}/> This prototype does not save, transmit or encrypt your writing.</div></aside>}</div></section>}
     {screen==="vault"&&<section className="experience-page">
   <div className="experience-main">
     <div className="experience-intro"><span className="eyebrow">YOUR PRIVATE VAULT <span className="eyebrow-line"/></span><h1>A place to return<br/><em>whenever you're ready.</em></h1><p className="lead">A gentle timeline for your written account and anything you add later. Every original entry will remain distinguishable from later additions.</p></div>
+    {onboardingConfirmed&&<div className="mini-alert"><ShieldAlert size={18}/> Local word confirmation completed. No account was created, and the generated words were discarded. The vault remains unavailable.</div>}
     <div className="vault-placeholder"><div className="vault-placeholder-icon"><BookOpen size={30}/></div><div><span className="eyebrow">YOUR RECORD WILL APPEAR HERE</span><h3>There's nothing saved in this preview.</h3><p>Once encryption and storage are independently reviewed, this will become your private record timeline.</p></div></div>
     <div className="vault-quick-actions"><div><PenLine size={20}/><span>Write in your own words</span></div><div><FileText size={20}/><span>Add another dated entry</span></div><div><Download size={20}/><span>Export when you choose</span></div></div>
     <div className="experience-actions"><button className="button button-outline" onClick={()=>go("write")}>Open writing space <ArrowRight size={18}/></button><button className="button button-outline" onClick={()=>go("export")}>Export and deletion preview <ArrowRight size={18}/></button></div>
