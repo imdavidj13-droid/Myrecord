@@ -6,7 +6,7 @@
 import {useEffect,useRef,useState} from "react";
 import {KeyRound,ShieldAlert} from "lucide-react";
 import type {WorkspaceSession} from "./vault-workspace";
-import {normalizeRecoveryWords} from "./security/recovery";
+import {isValidRecoveryWords,normalizeRecoveryWords} from "./security/recovery";
 
 type Props = {
   recoverFictional: (words:string)=>Promise<WorkspaceSession>;
@@ -27,8 +27,8 @@ export default function VaultRecoveryTestControls({recoverFictional,onRecovered,
   const recover=async()=>{
     if(submitted.current)return;
     const words=normalizeRecoveryWords(phrase);
-    if(words.split(" ").length!==12) {
-      setError("Enter exactly twelve fictional test recovery words.");
+    if(!isValidRecoveryWords(words)) {
+      setError("Enter twelve valid fictional test recovery words in order.");
       return;
     }
     submitted.current=true;setBusy(true);setError(null);
