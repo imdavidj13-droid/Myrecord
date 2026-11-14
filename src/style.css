@@ -319,93 +319,118 @@ html,body{overflow:hidden}
 .vault-delete-confirm input{width:min(100%,420px);padding:10px 12px;background:#fffcf6;border:1px solid #b6cbb4;border-radius:6px;color:#244b32}
 @media(max-width:760px){.vault-record-controls,.vault-workspace-history{max-height:none}.vault-record-control{padding:14px}}
 
-
-/* Same-site, explicitly fictional test activation; no remote storage */
-.existing-site-test-controls{padding:13px clamp(16px,4vw,52px);background:#fff5e5;color:#36543b;border-bottom:1px solid #d9caa9;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;font-family:inherit}
-.existing-site-test-description{display:flex;align-items:flex-start;gap:10px;flex:1 1 440px}
-.existing-site-test-description strong{font-size:13px}
-.existing-site-test-description p{font-size:12px;line-height:1.55;margin:4px 0;max-width:950px}
-.existing-site-test-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
-.existing-site-test-actions span{font-size:12px;font-weight:600}
-.existing-site-test-actions button{display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:1px solid #6c916f;background:#fdfdf8;color:#244a31;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:600}
-.existing-site-test-actions button:disabled{opacity:.5;cursor:not-allowed}
-@media(max-width:650px){.existing-site-test-controls{padding:12px 17px}}
-
-
 /*
- * Fix: the original editorial theme used a fixed 100dvh canvas with hidden
- * overflow. Adding the fictional-test toolbar above it made the lower page
- * unreachable. Allow the existing site's pages to grow and scroll instead.
+ * MySafeSpace screen layout: the real website occupies the page, with
+ * accessible scrolling instead of clipping actions to a viewport.
  */
 html,body,#root{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
-#root>div{min-height:100dvh}
-.existing-site-test-controls+.site{
+.site{
+  height:auto;
+  min-height:100dvh;
+  overflow:visible;
+  display:flex;
+  flex-direction:column;
+}
+.site>main{
+  flex:1 0 auto;
+  display:block;
+  height:auto;
+  min-height:0;
+  overflow:visible;
+}
+.site>main>section{height:auto;min-height:0;max-height:none;overflow:visible}
+.site .writer-page{
+  height:auto;
+  min-height:calc(100dvh - 110px);
+  padding-bottom:45px;
+  overflow:visible;
+}
+.site .writing-layout{
+  flex:none;
+  height:auto;
+  min-height:0;
+  align-items:stretch;
+}
+.site .writing-card{
+  min-height:550px;
+  height:auto;
+  overflow:visible;
+}
+.site .writing-card textarea{
+  flex:1 1 auto;
+  min-height:395px;
+  height:auto;
+  resize:vertical;
+  overflow-y:auto;
+}
+.site .support-column{
+  height:auto;
+  min-height:0;
+  overflow:visible;
+  grid-template-rows:auto auto;
+  align-content:start;
+}
+.site .home-screen,.site .home-lower,.site .vault-dashboard,
+.site .vault-record-controls{
+  height:auto;
+  max-height:none;
+  overflow:visible;
+}
+.site .experience-page{
   height:auto;
   min-height:calc(100dvh - 110px);
   overflow:visible;
 }
-.existing-site-test-controls+.site>main{
-  display:block;
-  flex:1 0 auto;
-  overflow:visible;
-  min-height:0;
+.site .experience-main{overflow:visible;justify-content:flex-start}
+.site .experience-scene{min-height:400px}
+
+/* Quiet, compact testing action in the existing header, not another banner. */
+.site .header-actions{display:flex;align-items:center;gap:12px}
+.header-test-controls{display:flex;align-items:center;gap:8px}
+.header-test-status{font-size:11px;white-space:nowrap;color:#607967}
+.header-test-button{
+  min-height:35px;
+  border:1px solid #55745f;
+  border-radius:7px;
+  background:#f3f4eb;
+  color:#294b36;
+  padding:7px 12px;
+  font-size:12px;
+  font-weight:600;
 }
-.existing-site-test-controls+.site>main>section{
-  height:auto;
-  min-height:0;
-  max-height:none;
-  overflow:visible;
-}
-.existing-site-test-controls+.site .experience-page{
-  height:auto;
-  min-height:calc(100dvh - 200px);
-  overflow:visible;
-  align-items:start;
-}
-.existing-site-test-controls+.site .experience-main{
-  overflow:visible;
-  justify-content:flex-start;
-  min-height:0;
-}
-.existing-site-test-controls+.site .writer-page{
-  height:auto;
-  min-height:calc(100dvh - 200px);
-  overflow:visible;
-}
-.existing-site-test-controls+.site .writing-layout{flex:1 0 auto;min-height:420px}
-.existing-site-test-controls+.site .writing-card{min-height:400px;height:auto}
-.existing-site-test-controls+.site .home-screen{
-  height:auto;
-  min-height:0;
-  overflow:visible;
-}
-.existing-site-test-controls+.site .home-lower{overflow:visible}
-.existing-site-test-controls+.site .vault-dashboard{
-  max-height:none;
-  height:auto;
-  overflow:visible;
-}
-.existing-site-test-controls+.site .vault-record-controls{
-  max-height:none;
-  overflow:visible;
+.header-test-button:disabled{opacity:.55}
+.header-test-error{padding:8px 22px;margin:0;color:#8b413c;background:#fff0ea;font-size:12px}
+
+/*
+ * Journal rules live on the textarea itself. That means the scroll position,
+ * writing baseline, and lines use the exact same origin and spacing.
+ */
+.site .screen-write .journal-card{background:#fffdf7}
+.site.screen-write .journal-card{background:#fffdf7}
+.site.screen-write .journal-card textarea{
+  font-size:18px;
+  line-height:36px;
+  padding:18px 0;
+  background-image:repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 34px,
+    #dce5d9 35px,
+    transparent 36px
+  );
+  background-size:100% 36px;
+  background-origin:content-box;
+  background-clip:content-box;
+  background-repeat:repeat;
 }
 @media(max-width:760px){
-  .existing-site-test-controls+.site{height:auto;min-height:calc(100dvh - 160px)}
-  .existing-site-test-controls+.site>main>section{min-height:0}
-  .existing-site-test-controls+.site .writing-card{min-height:460px}
-  .existing-site-test-controls+.site .writing-layout{min-height:0}
-}
-
-
-/* The React root must contain one shell, not a full-height test toolbar.
-   Keep the warning compact and place the actual site immediately below it. */
-.existing-site-test-shell{min-height:100dvh;display:flex;flex-direction:column}
-.existing-site-test-shell>.existing-site-test-controls{
-  flex:0 0 auto;
-  min-height:0;
-  align-self:stretch;
-}
-.existing-site-test-shell>.site{
-  flex:1 0 auto;
-  min-height:calc(100dvh - 110px);
+  .site .writer-page{height:auto;min-height:0}
+  .site .writing-layout{display:flex;flex-direction:column}
+  .site .writing-card{min-height:520px}
+  .site .writing-card textarea{min-height:340px}
+  .site .support-column{grid-template-rows:auto;overflow:visible}
+  .site .experience-page{height:auto;min-height:0}
+  .site .experience-scene{min-height:250px}
+  .header-test-status{display:none}
+  .header-test-button{padding:7px 9px;font-size:11px}
 }
