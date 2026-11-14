@@ -11,9 +11,10 @@ import {serializeVerifiedExportForTests} from "./security/verified-export";
 type Props={
   controller:VaultWorkspaceController;
   snapshot:WorkspaceSnapshot;
+  ephemeral?:boolean;
 };
 const confirmation="MARK FICTIONAL VAULT PENDING";
-export default function VaultRecordControls({controller,snapshot}:Props) {
+export default function VaultRecordControls({controller,snapshot,ephemeral=false}:Props) {
   const [exportJson,setExportJson]=useState<string|null>(null);
   const exportGeneration=useRef(0);
   const [pending,setPending]=useState(false);
@@ -52,14 +53,17 @@ export default function VaultRecordControls({controller,snapshot}:Props) {
     }finally {setTimeout(()=>URL.revokeObjectURL(url),1000);}
   };
   const deletion=async()=>{
-    if(confirmText!==confirmation || !ready || busy)return;
+    if(confirmText!==(ephemeral?"ERASE FICTIONAL TEST":confirmation) || !ready || busy)return;
     exportGeneration.current++;
     setExportJson(null);
     setError(null);
     try {
-      await controller.markDeletionPending();
+      if(ephemeral) await controller.eraseEphemeralVault();
+      else await controller.markDeletionPending();
       setExportJson(null);setConfirmText("");setPending(false);
-      setNotice("The fictional vault was marked deletion-pending and this test session was closed. This does not establish that data or backups were erased.");
+      setNotice(ephemeral
+        ? "This tab’s fictional test vault has been cleared and closed. Any downloaded export remains on your device."
+        : "The fictional vault was marked deletion-pending and this test session was closed. This does not establish that data or backups were erased.");
     }catch(e){setError(e instanceof Error?e.message:"Deletion request failed.");}
   };
   return <section className="vault-record-controls" aria-label="Isolated fictional vault controls">
@@ -78,17 +82,19 @@ export default function VaultRecordControls({controller,snapshot}:Props) {
         </button>
       </div>}
     </div>
-    <div className="vault-record-control"><h3>Request deletion-pending status</h3>
-      <p>This requests a signed status change in the synthetic database. It does not physically erase ciphertext, backups or snapshots.</p>
+    <div className="vault-record-control"><h3>{ephemeral?"Erase this fictional test vault":"Request deletion-pending status"}</h3>
+      <p>{ephemeral
+        ?"Erase the records held in this browser tab and close the test session. This cannot delete copies you downloaded."
+        :"This requests a signed status change in the synthetic database. It does not physically erase ciphertext, backups or snapshots."}</p>
       {!pending?
         <button className="button button-outline" disabled={!ready||busy}
-          onClick={()=>setPending(true)}><Trash2 size={16}/> Review test deletion</button>
+          onClick={()=>setPending(true)}><Trash2 size={16}/> {ephemeral?"Erase fictional records":"Review test deletion"}</button>
         :<div className="vault-delete-confirm">
-          <label htmlFor="vault-delete-phrase">To proceed, type: <strong>{confirmation}</strong></label>
+          <label htmlFor="vault-delete-phrase">To proceed, type: <strong>{ephemeral?"ERASE FICTIONAL TEST":confirmation}</strong></label>
           <input id="vault-delete-phrase" value={confirmText}
             onChange={e=>setConfirmText(e.target.value)} autoComplete="off"/>
-          <button className="button" disabled={!ready||busy||confirmText!==confirmation}
-            onClick={()=>void deletion()}><LockKeyhole size={16}/> Mark pending and close test session</button>
+          <button className="button" disabled={!ready||busy||confirmText!==(ephemeral?"ERASE FICTIONAL TEST":confirmation)}
+            onClick={()=>void deletion()}><LockKeyhole size={16}/> {ephemeral?"Erase and close test":"Mark pending and close test session"}</button>
           <button className="text-link" onClick={()=>{setPending(false);setConfirmText("");}}>Cancel</button>
         </div>}
     </div>
