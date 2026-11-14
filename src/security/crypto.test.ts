@@ -30,7 +30,7 @@ describe("isolated AES-256-GCM primitive (synthetic data only)", () => {
   it("rejects modified ciphertext, IV, and unsupported version", async () => {
     const key = await generateTransientEntryKey();
     const entry = await encryptSyntheticEntry(key, "fictional entry");
-    const mutated = entry.ciphertext.slice(0, -4) + (entry.ciphertext.at(-4) === "A" ? "B" : "A") + entry.ciphertext.slice(-3);
+    const mutated = entry.ciphertext.slice(0, -4) + (entry.ciphertext.charAt(entry.ciphertext.length - 4) === "A" ? "B" : "A") + entry.ciphertext.slice(-3);
     await expect(decryptSyntheticEntry(key, { ...entry, ciphertext: mutated })).rejects.toThrow();
     await expect(decryptSyntheticEntry(key, { ...entry, iv: "AAAAAAAAAAAAAAAA" })).rejects.toThrow();
     await expect(decryptSyntheticEntry(key, { ...entry, version: 2 })).rejects.toThrow();
