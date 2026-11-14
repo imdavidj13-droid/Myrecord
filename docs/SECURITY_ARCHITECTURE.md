@@ -49,6 +49,24 @@ Code: `src/security/key-wrapping.ts` and `src/security/key-wrapping.test.ts`.
 
 **Before changing the user interface:** Validate browser behaviour and CI, review the exact protocol and dependencies with an independent cryptographer/security professional, plan for secure software updates and server-side metadata protection, and design the complete backup/recovery lifecycle. Live encryption/recovery buttons remain intentionally disabled.
 
+## Phase 4 — anonymous access proof prototype (isolated)
+
+Code: `src/security/access-proof.ts` and `src/security/access-proof.test.ts`; a **non-deployed** Cloudflare D1 draft lives at `docs/PROTOTYPE_VAULT_SCHEMA.sql`.
+
+The experiment uses P-256 ECDSA public-key challenge/response:
+
+1. The test client generates an ephemeral, non-extractable signing private key and exports its **public** verification key.
+2. The test server generates a fresh 256-bit nonce, vault ID, intended action and short expiry; it records the exact issued challenge.
+3. The client signs domain-separated canonical bytes containing the nonce, vault ID, action and expiry.
+4. A verifier checks the signature with the public key, rejects a different vault/action/expired challenge, and consumes the nonce once to reject replay.
+5. Test coverage includes wrong keys, changed messages, expiry, wrong actions, repeated use and malformed input.
+
+**Not yet resolved:** how to recover the signing private key with a 12-word phrase. A non-extractable in-memory private key vanishes after closing the browser and cannot be recovered by the current code. It needs a separately designed, securely wrapped exportable-then-imported private key or a reviewed deterministic design, and a proper registration protocol. Do **not** turn this prototype into live authentication without that.
+
+**Critical distinction:** a signed proof is not, on its own, a server authorization system. Production requires atomic server-side challenge issuance/consumption across Worker instances; identity and action binding; register/recover flows; rate limiting and enumeration resistance; secure session handling; transactional authorization for every record operation; rigorous logging minimization; and external review. A JavaScript Map is test infrastructure only.
+
+The draft D1 tables specify opaque IDs, public verification keys, encrypted key envelopes, append-only ciphertext entries and one-use challenge records. **No migrations, bindings or endpoints have been deployed.** Encrypted-data retention, backups, restores, timestamps, cryptographic chain integrity, legal preservation and user-initiated deletion require separate design.
+
 ## Threat model (initial)
 
 Protect against:
