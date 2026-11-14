@@ -213,6 +213,18 @@ Files: `src/security/integrity-chain.ts`, `src/security/integrity-chain.test.ts`
 
 All of the above is synthetic/test-only, with no routes or live D1 migration. The complete CI suite still needs independent verification.
 
+## Phase 16 — v2 encrypted integrity chain wired into isolated D1 workflow
+
+This phase adds a parallel **version-2 test-only** D1 path without changing live or existing v1 API behavior.
+
+- `docs/D1_V2_INTEGRITY_EXTENSION.sql` defines a separate append-only v2 history table and a per-vault revision/head table. SQLite triggers reject nonsequential revisions, incorrect previous digests, writes to inactive vaults, and record mutation/deletion. It does **not** migrate v1 data or enable real endpoints.
+- `src/security/d1-v2-integrity.ts` initializes the genesis head for a registered synthetic vault, verifies version-2 envelope digests, signs the exact append request, loads the registered verification key, and atomically claims the D1 challenge nonce with a v2 record insertion.
+- `src/security/d1-v2-read.ts` requires a signed read/export challenge, consumes it in the same D1 batch as full ciphertext history/head retrieval, checks database row metadata against envelope fields, verifies SHA-256 chain continuity and compares the returned head with the database head and optionally a **separately retained client-trusted head**.
+- `src/security/d1-v2-integrity.test.ts`, `src/security/d1-v2-read.test.ts`, and `scripts/test_d1_v2_integrity.py` add synthetic tests for digest tampering, history omission/rollback, incorrect signatures, failed transactions, head initialization and DB constraints. GitHub Actions now checks the v2 extension in SQLite and Wrangler's **local-only** D1 test configuration.
+- The original v1 modules are preserved for compatibility with prior synthetic tests; v1 and v2 are **not interchangeable**. A reviewed migration/protocol-version plan is required before consolidation.
+
+**Do not deploy.** A digest chain alone is not a third-party timestamp, permanent evidence guarantee, independent server integrity guarantee, or protection against deletion of all copies. Client decryption must authenticate the AES-GCM AAD for every v2 entry. A server can still roll back the entire history unless the client has an independently trusted head. This path lacks production registration atomicity, incident response, authenticated deletion finalization, rate limits, data retention, privacy assessment and an independent external security audit. Tests have been added, but a complete CI pass is **not yet verified**.
+
 ## Threat model (initial)
 
 Protect against:
