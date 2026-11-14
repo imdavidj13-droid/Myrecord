@@ -1,7 +1,7 @@
 {
   "name": "mysafespace-synthetic-worker-local-only",
   "main": "./scripts/worker-local-test.ts",
-  "compatibility_date": "2026-11-14",
+  "compatibility_date": "2026-11-09",
   "d1_databases": [
     {
       "binding": "DB",
