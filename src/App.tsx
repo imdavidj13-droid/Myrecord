@@ -68,14 +68,14 @@ export default function App(){
   <div className="home-hero-replica">
     <div className="home-photo" aria-hidden="true"><div className="photo-plant"><Botanical/></div><div className="photo-table"/><div className="photo-cup"><div className="coffee"/><div className="cup-handle"/></div><div className="photo-book"><div className="book-pages"/><div className="book-ribbon"/></div><div className="photo-pen"/></div>
     <div className="home-hero-content">
-      <div className="eyebrow">A PRIVATE, ENCRYPTED SPACE <span className="eyebrow-line"/></div>
+      <div className="eyebrow">A PRIVATE SPACE IN DEVELOPMENT <span className="eyebrow-line"/></div>
       <h1>Document your experience<br/>in your own time</h1>
       <p>A private place to write and keep a record of what happened.<br/>Your words, your choices, and your own pace.</p>
       <div className="home-cta">
-        <button className="button" onClick={()=>go("before")}><PenLine size={21}/> Start a private record <ArrowRight size={20}/></button>
-        <button className="button button-outline" onClick={()=>go("return")}><KeyRound size={21}/> Return to your record <ArrowRight size={20}/></button>
+        <button className="button" onClick={()=>go("before")}><PenLine size={21}/> Explore getting started <ArrowRight size={20}/></button>
+        <button className="button button-outline" onClick={()=>go("return")}><KeyRound size={21}/> Recovery information <ArrowRight size={20}/></button>
       </div>
-      <div className="home-trust"><span><CheckCircle2 size={19}/> Private by design</span><span><CheckCircle2 size={19}/> No account required</span><span><CheckCircle2 size={19}/> No public posts</span></div>
+      <div className="home-trust"><span><CheckCircle2 size={19}/> Privacy-first design</span><span><CheckCircle2 size={19}/> No account registration planned</span><span><CheckCircle2 size={19}/> No public posts</span></div>
     </div>
   </div>
   <div className="home-feature-rail">
@@ -87,9 +87,9 @@ export default function App(){
   <div className="home-lower">
     <div className="how-block"><h2>How it works</h2><div className="how-steps">
       <div><span className="how-icon"><PenLine/></span><h3>Write</h3><p>Record what you want to remember, in your own words.</p></div>
-      <ArrowRight className="how-arrow"/><div><span className="how-icon"><LockKeyhole/></span><h3>Encrypt</h3><p>Your writing is encrypted on your device.</p></div>
-      <ArrowRight className="how-arrow"/><div><span className="how-icon"><KeyRound/></span><h3>Keep your 12 words</h3><p>Your recovery phrase lets you return later.</p></div>
-      <ArrowRight className="how-arrow"/><div><span className="how-icon"><BookOpen/></span><h3>Return anytime</h3><p>Access and export your record when you're ready.</p></div>
+      <ArrowRight className="how-arrow"/><div><span className="how-icon"><LockKeyhole/></span><h3>Encrypt</h3><p>In the completed service, writing will be encrypted on your device.</p></div>
+      <ArrowRight className="how-arrow"/><div><span className="how-icon"><KeyRound/></span><h3>Keep your 12 words</h3><p>In the completed service, your recovery phrase will restore access.</p></div>
+      <ArrowRight className="how-arrow"/><div><span className="how-icon"><BookOpen/></span><h3>Return anytime</h3><p>Access and export will be available after launch.</p></div>
     </div></div>
     <div className="important-block"><h2>Important to know</h2><div className="important-items">
       <span><Info/> This is a private record, not a police report.</span>
