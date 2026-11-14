@@ -72,5 +72,7 @@ jobs:
         run: node scripts/test_d1_local_crypto.mjs
       - name: Verify isolated local Worker and D1 binding
         run: node scripts/test_worker_local_d1.mjs
+      - name: Verify signed browser-to-local-Worker-to-D1 lifecycle
+        run: node scripts/test_worker_signed_protocol.mjs
       - name: Typecheck and build
         run: npm run build
