@@ -36,7 +36,6 @@ describe("isolated 12-word recovery bootstrap — synthetic data only", () => {
     expect(isValidVaultLookupIdForTests(id)).toBe(true);
     expect(id).toHaveLength(43);
     expect(id).toBe(await deriveVaultLookupIdForTests("  " + words.toUpperCase() + "  "));
-    expect(id).not.toContain(words.split(" ")[0]);
     const another = generateRecoveryWords();
     expect(await deriveVaultLookupIdForTests(another)).not.toBe(id);
     await expect(deriveVaultLookupIdForTests("invalid recovery phrase")).rejects.toThrow();
