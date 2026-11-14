@@ -182,7 +182,7 @@ export default function App({workspace,recoverFictional}:AppProps){
       <div className="experience-word-grid">{Array.from({length:12},(_,i)=><div className="word-placeholder" key={i}><small>{String(i+1).padStart(2,"0")}</small><span>Word</span></div>)}</div>
       <div className="mini-alert"><ShieldAlert size={18}/> Recovery is disabled in this preview. Do not enter an actual recovery phrase.</div>
     </div>
-    {workspace && recoverFictional && (vault.phase==="locked"||vault.phase==="closed"||vault.phase==="error") && <VaultRecoveryTestControls
+    {workspace && recoverFictional && (vault.phase==="locked"||vault.phase==="closed") && <VaultRecoveryTestControls
       recoverFictional={recoverFictional}
       onRecovered={async session=>{
         await workspace.unlock(session);
