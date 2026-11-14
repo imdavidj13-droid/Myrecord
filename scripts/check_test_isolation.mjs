@@ -58,7 +58,7 @@ assert.ok(localVite.includes('host:"127.0.0.1"') &&
 const inBrowserVault=read("src/ephemeral-fictional-vault.ts");
 assert.equal(
   ["fetch(", "XMLHttpRequest", "localStorage.", "sessionStorage.", "indexedDB.", "sendBeacon("]
-    .some(pattern=>inBrowserVault.includes(pattern))),false,"Fictional browser vault must never access network or persistent browser storage.");
+    .some(pattern=>inBrowserVault.includes(pattern)),false,"Fictional browser vault must never access network or persistent browser storage.");
 const publicMain=read("src/main.tsx");
 assert.ok(publicMain.includes('ExistingSiteTestApp') &&
   !publicMain.includes("worker-protocol-test"),
