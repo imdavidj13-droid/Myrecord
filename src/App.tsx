@@ -21,7 +21,7 @@ export default function App(){
   const [ack,setAck]=useState(false);
   const [mobileMenu,setMobileMenu]=useState(false);
   const go=(page:Screen)=>{setScreen(page);setMobileMenu(false);};
-  const quit=()=>{setWriting("");setPhrase("");setAck(false);window.location.replace("about:blank");};
+  const quit=()=>{setWriting("");setAck(false);window.location.replace("about:blank");};
   const modeNames:Record<Mode,string>={free:"Free writing",journal:"Journal",guided:"Guided writing",focus:"Focus mode"};
   return <div className={`site screen-${screen} ${mode==="focus"&&screen==="write"?"focus-site":""}`}>
     <div className="demo-strip"><ShieldAlert size={15}/><strong>DESIGN PROTOTYPE</strong><span>Not encrypted or saved. Do not enter real experiences or identifying details.</span></div>
