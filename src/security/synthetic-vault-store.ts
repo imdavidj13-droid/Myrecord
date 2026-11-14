@@ -16,6 +16,7 @@ import {
 import type { EncryptedEntryV1 } from "./crypto";
 import type { WrappedVaultKeyV1 } from "./key-wrapping";
 import type { WrappedSigningKeyV1 } from "./signing-recovery";
+import { isValidVaultLookupIdForTests } from "./recovery-bootstrap";
 
 const vaultIdPattern = /^[A-Za-z0-9_-]{22}$/;
 const entryIdPattern = /^[A-Za-z0-9_-]{16,128}$/;
@@ -86,6 +87,7 @@ function snapshot<T>(value: T): T {
 
 export class SyntheticVaultStoreForTests {
   private readonly vaults = new Map<string, Vault>();
+  private readonly lookupIndex = new Map<string, string>();
   private readonly challenges = new InMemoryProofVerifierForTests();
 
   /**
@@ -101,17 +103,41 @@ export class SyntheticVaultStoreForTests {
   }
 
   async register(
-    backup: SyntheticVaultBackup, proof: SignedProofV1, now: number
+    backup: SyntheticVaultBackup, proof: SignedProofV1, now: number,
+    lookupId?: string
   ): Promise<void> {
     validateBackup(backup);
+    if (lookupId !== undefined && !isValidVaultLookupIdForTests(lookupId)) {
+      throw new Error("Invalid recovery lookup identifier.");
+    }
     const verificationKey = await importVerificationKeyForTests(backup.verificationKey);
     if (!await this.challenges.verify(proof, verificationKey, backup.vaultId, "append", now)) {
       throw new Error("Registration authorization denied.");
     }
     if (this.vaults.has(backup.vaultId)) throw new Error("Vault already registered.");
+    if (lookupId && this.lookupIndex.has(lookupId)) {
+      throw new Error("Recovery identifier already registered.");
+    }
     this.vaults.set(backup.vaultId, {
       backup: snapshot(backup), verifierKey: verificationKey, entries: []
     });
+    if (lookupId) this.lookupIndex.set(lookupId, backup.vaultId);
+  }
+
+  /**
+   * Unauthenticated recovery bootstrap: returns ONLY public metadata and
+   * encrypted key backups. It never returns encrypted entries, access tokens,
+   * signed proofs, private keys, or plaintext.
+   *
+   * A production implementation must mitigate metadata enumeration and abuse.
+   */
+  lookupEncryptedRecoveryPackage(lookupId: string): SyntheticVaultBackup | null {
+    if (!isValidVaultLookupIdForTests(lookupId)) {
+      throw new Error("Invalid recovery lookup identifier.");
+    }
+    const vaultId = this.lookupIndex.get(lookupId);
+    const vault = vaultId === undefined ? undefined : this.vaults.get(vaultId);
+    return vault ? snapshot(vault.backup) : null;
   }
 
   issueActionChallenge(vaultId: string, action: VaultAction, now: number): ProofChallengeV1 {
@@ -179,5 +205,8 @@ export class SyntheticVaultStoreForTests {
     // In-memory test only. Production deletion requires a reviewed lifecycle,
     // backups/retention handling and audit documentation.
     this.vaults.delete(vaultId);
+    for (const [lookupId, indexedVault] of this.lookupIndex) {
+      if (indexedVault === vaultId) this.lookupIndex.delete(lookupId);
+    }
   }
 }
