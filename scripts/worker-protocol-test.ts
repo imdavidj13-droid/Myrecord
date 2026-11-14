@@ -76,7 +76,7 @@ export default {
         }
         case "register": {
           requireKeys(payload,["backup","lookupId","proof","intent"]);
-          await transport.register(payload as Parameters<typeof transport.register>[0]);
+          await transport.register(payload as unknown as Parameters<typeof transport.register>[0]);
           return response({ok:true});
         }
         case "lookup": {
@@ -91,7 +91,7 @@ export default {
         }
         case "read": {
           requireKeys(payload,["vaultId","action","challenge","proof"]);
-          return response(await transport.read(payload as Parameters<typeof transport.read>[0]));
+          return response(await transport.read(payload as unknown as Parameters<typeof transport.read>[0]));
         }
         case "append-challenge": {
           requireKeys(payload,["envelope"]);
@@ -101,7 +101,7 @@ export default {
         }
         case "append": {
           requireKeys(payload,["envelope","challenge","proof"]);
-          await transport.append(payload as Parameters<typeof transport.append>[0]);
+          await transport.append(payload as unknown as Parameters<typeof transport.append>[0]);
           return response({ok:true});
         }
       }
