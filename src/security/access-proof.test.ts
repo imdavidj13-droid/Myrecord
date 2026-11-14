@@ -57,7 +57,7 @@ describe("anonymous signed challenge access prototype — synthetic only", () =>
     const valid = issueChallengeForTests(vaultId, "delete", start);
     verifier.register(valid);
     const actual = await signChallengeForTests(pair.privateKey, valid);
-    const invalid = { ...actual, signature: actual.signature.slice(0, -1) + (actual.signature.endsWith("A") ? "B" : "A") };
+    const invalid = { ...actual, signature: (actual.signature.startsWith("A") ? "B" : "A") + actual.signature.slice(1) };
     expect(await verifier.verify(invalid, pair.publicKey, vaultId, "delete", start + 1)).toBe(false);
     expect(await verifier.verify(actual, pair.publicKey, vaultId, "delete", start + 2)).toBe(false);
   });
