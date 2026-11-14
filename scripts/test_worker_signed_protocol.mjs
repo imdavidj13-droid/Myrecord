@@ -75,7 +75,9 @@ function remoteTransport() {
     issueReadChallenge:(vaultId,action)=>post("read-challenge",{vaultId,action}),
     read:input=>post("read",input),
     issueAppendChallenge:envelope=>post("append-challenge",{envelope}),
-    append:input=>post("append",input).then(()=>undefined)
+    append:input=>post("append",input).then(()=>undefined),
+    issueDeletionChallenge:vaultId=>post("deletion-challenge",{vaultId}),
+    markDeletionPending:(challenge,intent)=>post("mark-deletion-pending",{challenge,intent}).then(()=>undefined)
   };
 }
 async function run() {
@@ -166,12 +168,23 @@ async function run() {
     });
   }catch{rejected=true;}
   assert.equal(rejected,true,"Plaintext secret field accepted");
+  await recovered.requestDeletionForTests();
+  rejected=false;
+  try {await recovered.read();} catch {rejected=true;}
+  assert.equal(rejected,true,"Session accepted access after deletion-pending request");
+  rejected=false;
+  try {await transport.issueReadChallenge(registration.backup.vaultId,"read");}
+  catch {rejected=true;}
+  assert.equal(rejected,true,"Deletion-pending vault issued another read challenge");
+  rejected=false;
+  try {await recovered.requestDeletionForTests();}catch{rejected=true;}
+  assert.equal(rejected,true,"Repeated deletion request unexpectedly succeeded");
   const noPublicRoute=await fetch(base+"/api/v1/vault");
   assert.equal(noPublicRoute.status,404);
 
   console.log("PASS: signed registration, two encrypted HTTP appends, verified "+
     "D1 history, phrase recovery and authenticated export through isolated "+
-    "local Worker; unauthorized requests rejected; no phrase/plaintext in HTTP.");
+    "local Worker; unauthorized requests rejected; signed deletion pending; no phrase/plaintext in HTTP.");
 }
 try {
   await run();
