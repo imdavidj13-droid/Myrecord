@@ -47,10 +47,10 @@ jobs:
           set -euo pipefail
           D1="npx --yes wrangler@4.156.2 d1 execute mysafespace-d1-local-test --local --config wrangler.d1-test.jsonc"
           $D1 --file scripts/d1_local_lifecycle_fixture.sql
-          $D1 --command "SELECT vault_id FROM sandbox_vaults WHERE vault_id='syntheticLifecycleVault01' AND status='active'" | grep -q syntheticLifecycleVault01
-          $D1 --command "SELECT vault_id FROM sandbox_integrity_heads_v2 WHERE vault_id='syntheticLifecycleVault01' AND latest_revision=2 AND head_digest='bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'" | grep -q syntheticLifecycleVault01
-          $D1 --command "SELECT entry_id FROM sandbox_integrity_entries_v2 WHERE vault_id='syntheticLifecycleVault01' AND revision=2 AND previous_digest='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'" | grep -q syntheticLifecycleEntry002
-          $D1 --command "SELECT nonce FROM sandbox_registration_challenges WHERE vault_id='syntheticLifecycleVault01' AND consumed_ms=2000 AND consume_marker='MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM'" | grep -q RRRRRRR
+          $D1 --command "SELECT vault_id FROM sandbox_vaults WHERE vault_id='syntheticVault12345678' AND status='active'" | grep -q syntheticVault12345678
+          $D1 --command "SELECT vault_id FROM sandbox_integrity_heads_v2 WHERE vault_id='syntheticVault12345678' AND latest_revision=2 AND head_digest='bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'" | grep -q syntheticVault12345678
+          $D1 --command "SELECT entry_id FROM sandbox_integrity_entries_v2 WHERE vault_id='syntheticVault12345678' AND revision=2 AND previous_digest='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'" | grep -q syntheticLifecycleEntry002
+          $D1 --command "SELECT nonce FROM sandbox_registration_challenges WHERE vault_id='syntheticVault12345678' AND consumed_ms=2000 AND consume_marker='MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM'" | grep -q RRRRRRR
           if $D1 --command "INSERT INTO sandbox_vaults(vault_id,lookup_id,verification_jwk,wrapped_backup_json) VALUES('orphanLifecycleVault01','OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO','{}','{}')"; then
             echo "FAIL: Unauthenticated registration was accepted"
             exit 1
@@ -59,7 +59,7 @@ jobs:
             echo "FAIL: Registration challenge replay was accepted"
             exit 1
           fi
-          if $D1 --command "INSERT INTO sandbox_integrity_entries_v2(entry_id,vault_id,revision,previous_digest,envelope_digest,encrypted_envelope_json,server_received_ms) VALUES('syntheticLifecycleEntry003','syntheticLifecycleVault01',3,'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc','dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd','{}',2003)"; then
+          if $D1 --command "INSERT INTO sandbox_integrity_entries_v2(entry_id,vault_id,revision,previous_digest,envelope_digest,encrypted_envelope_json,server_received_ms) VALUES('syntheticLifecycleEntry003','syntheticVault12345678',3,'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc','dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd','{}',2003)"; then
             echo "FAIL: Broken digest continuity was accepted"
             exit 1
           fi
