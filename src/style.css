@@ -395,3 +395,17 @@ html,body,#root{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
   .existing-site-test-controls+.site .writing-card{min-height:460px}
   .existing-site-test-controls+.site .writing-layout{min-height:0}
 }
+
+
+/* The React root must contain one shell, not a full-height test toolbar.
+   Keep the warning compact and place the actual site immediately below it. */
+.existing-site-test-shell{min-height:100dvh;display:flex;flex-direction:column}
+.existing-site-test-shell>.existing-site-test-controls{
+  flex:0 0 auto;
+  min-height:0;
+  align-self:stretch;
+}
+.existing-site-test-shell>.site{
+  flex:1 0 auto;
+  min-height:calc(100dvh - 110px);
+}
