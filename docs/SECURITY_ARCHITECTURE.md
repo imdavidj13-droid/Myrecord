@@ -86,6 +86,30 @@ Code: `src/security/signing-recovery.ts`, `src/security/signing-recovery.test.ts
 
 **Next development gate:** execute the full crypto test suite and TypeScript build in CI; review the key lifecycle with an independent cryptographer; design authenticated enrollment and recovery of the *vault locator* without leaking sensitive inputs. Do not activate storage or accept real testimony until those gates are complete.
 
+## Phase 6 — isolated authenticated ciphertext store
+
+Code: `src/security/synthetic-vault-store.ts` and `src/security/synthetic-vault-store.test.ts`. **In-memory synthetic test harness only**. Nothing is bound to Cloudflare Workers, deployed to D1, or accessible by real users.
+
+Implemented in the harness:
+
+- Register a vault only after a one-time signature proving control of the proposed public verification key.
+- Match vault identifiers across the data-key backup and signing-key backup.
+- Require a one-use, action-specific signed challenge for reading ciphertext, appending entries, exporting ciphertext or deleting the test vault.
+- Restrict storage to versioned encrypted-entry envelopes, validate metadata and ciphertext encoding/size, and reject duplicate entry IDs or out-of-sequence revisions.
+- Return encrypted backups and ciphertext rather than plaintext or recovery words. Tests verify that synthetic secrets are not present in serialized storage output.
+- The simulated delete operation clears only an in-memory test Map; it is **not** production deletion.
+- Regression tests include wrong signing keys, cross-vault access, replay, conflicting revisions and unsupported inputs.
+
+**Important blockers before real storage:**
+
+1. **Circular recovery:** The current harness requires a signed proof to fetch the encrypted signing-key backup, but the signing key needed to produce the proof is contained in that backup. A real returning user could not bootstrap recovery. A carefully designed retrieval mechanism must solve this without leaking or making enumerable private vault metadata. No public recovery endpoint has been enabled.
+2. **Authorisation must bind the complete request:** The current proof signs a vault ID, action, challenge nonce and expiry—not the *append body*, revision, or deletion details. A live API must sign or otherwise authenticate the exact method/path/body digest and operation-specific revision to prevent alteration or substitution.
+3. **Atomicity:** In-memory Maps do not provide distributed, transactional challenge consumption, vault creation, revision assignment or deletion. Cloudflare D1/Durable Objects implementation must enforce authorization and mutation atomically, including races, retries and idempotency.
+4. **Server trust:** A server can still omit, reorder or roll back encrypted entries. Per-entry authenticated metadata, verifiable chains and client-verifiable integrity anchors require a reviewed scheme.
+5. **Operations and compliance:** No rate limits, anti-enumeration measures, session lifecycle, key rotation, deletion retention, backups, incident response, privacy impact assessment, safeguarding or independent penetration testing yet.
+
+**This is not a complete secure vault.** Avoid calling it production-ready, deploying the draft schema, creating live endpoints, or accepting real survivor testimony.
+
 ## Threat model (initial)
 
 Protect against:
