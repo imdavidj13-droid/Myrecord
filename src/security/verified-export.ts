@@ -44,3 +44,31 @@ export function packageVerifiedExportForTests(history:WorkspaceHistory): Verifie
 export function serializeVerifiedExportForTests(history:WorkspaceHistory):string {
   return JSON.stringify(packageVerifiedExportForTests(history),null,2)+"\n";
 }
+
+/**
+ * Human-readable fictional export. Delimiters are for readability only, not
+ * tamper-evident proof; the accompanying head digest is informational.
+ */
+export function serializeReadableExportForTests(history:WorkspaceHistory):string {
+  const checked=packageVerifiedExportForTests(history);
+  const lines=[
+    "MYSAFESPACE — FICTIONAL TEST RECORD EXPORT",
+    "NOT A FORENSIC CERTIFICATION. DO NOT USE WITH REAL EXPERIENCES.",
+    "",
+    "Verified in this browser test session only",
+    "Revisions: "+checked.latestRevision,
+    "Head digest (SHA-256): "+checked.headDigest,
+    ""
+  ];
+  for(const entry of checked.entries){
+    lines.push(
+      "REVISION "+entry.revision,
+      "Entry ID: "+entry.entryId,
+      "----------------------------------------",
+      entry.text,
+      "----------------------------------------",
+      ""
+    );
+  }
+  return lines.join("\n")+"\n";
+}
