@@ -291,6 +291,15 @@ Test-only files: `docs/D1_REGISTRATION_PROTOTYPE.sql`, `src/security/d1-registra
 - The older `d1-read-export.ts` adapter is for v1 `sandbox_entries`, not the v2 `sandbox_integrity_entries_v2` history used by the browser orchestration. A dedicated authenticated v2 D1 read/export adapter is still required.
 - No production user-data routes or remote database operations were introduced.
 
+## Phase 24 — test-only D1 v2 vault transport composition
+
+- Added `src/security/d1-v2-transport.ts` implementing the existing `VaultTransportForTests` contract with the prior D1 registration, challenge, read/export, and v2 append functions. No new Worker endpoint or production API was introduced.
+- The existing `d1-v2-read.ts` already performs signed full-history validation against the v2 entries table and its D1 head; the new adapter reuses it rather than creating a duplicate implementation. The existing signed-read challenge generator also works with the v2 reader because both use the same canonical `sinceRevision=0` request format.
+- Added recovery lookup by opaque lookup ID. This returns *only the encrypted backup* from a separately provided test D1 connection and fails closed on malformed rows, conflicting results, invalid vault identity, or inconsistent verification-key metadata.
+- Added `d1-v2-transport.test.ts` tests for valid ciphertext metadata lookup, missing records, replacement vault IDs, malformed backup JSON, ambiguous results, inconsistent public verifier key, and rejection of bad lookup IDs before D1 access.
+- Registration challenges, v2 ciphertext appends and signed reads are delegated to the pre-existing test-only adapters. The new tests for lookup are **not** a deployed Worker/D1 end-to-end test; the local Wrangler SQL fixture and synthetic browser tests remain separate.
+- The transport is **not imported into the public application**, and must never be attached to real user input or a live D1 binding without independent protocol/security and privacy reviews, full remote concurrency/atomicity testing, abuse controls, and deployment readiness work.
+
 ## Threat model (initial)
 
 Protect against:
