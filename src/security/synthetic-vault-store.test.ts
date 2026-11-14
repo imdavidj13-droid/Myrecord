@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { decryptSyntheticEntry, encryptSyntheticEntry } from "./crypto";
-import { issueChallengeForTests, signChallengeForTests } from "./access-proof";
+import { signChallengeForTests } from "./access-proof";
 import { createWrappedVaultKeyForTests, unwrapVaultKeyForTests } from "./key-wrapping";
 import { createWrappedSigningCredentialForTests } from "./signing-recovery";
 import { generateRecoveryWords } from "./recovery";
@@ -62,7 +62,7 @@ describe("synthetic ciphertext-only store — no server or persistence", () => {
     expect(encoded).not.toContain(fixture.phrase);
     const restoredKey = await unwrapVaultKeyForTests(fixture.phrase, exportPackage.backup.wrappedDataKey);
     expect(await decryptSyntheticEntry(restoredKey, exportPackage.entries[0].ciphertext)).toBe(original);
-    exportPackage.entries[0].ciphertext.ciphertext = "garbage";
+    expect(exportPackage.entries[0].ciphertext.ciphertext).toBe(ciphertext.ciphertext);
   });
 
   it("rejects unauthorized reads and cross-vault proof reuse", async () => {
