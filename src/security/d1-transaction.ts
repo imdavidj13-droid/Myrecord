@@ -144,17 +144,17 @@ export async function issueBoundAppendChallengeD1ForTests(
   if (!Number.isSafeInteger(now)) throw new Error("Invalid challenge time.");
   const challenge = issueChallengeForTests(vaultId, "append", now);
   const digest = await digestAppendIntentForTests(challenge, entry);
-  await db.prepare(`
+  const result = await db.prepare(`
     INSERT INTO sandbox_challenges(nonce, vault_id, action, issued_ms, expires_ms, request_digest)
     SELECT ?, vault_id, 'append', ?, ?, ? FROM sandbox_vaults
     WHERE vault_id = ? AND status = 'active'
   `).bind(
     challenge.nonce, challenge.issuedAt, challenge.expiresAt,
     digest, challenge.vaultId
-  ).run();
-  // Production MUST verify exactly one challenge was inserted. SQL SELECT
-  // can silently insert 0 rows if the vault is missing; never advertise
-  // this method as production-ready without checking run().meta.changes.
+  ).run() as { meta?: { changes?: number } };
+  if (result?.meta?.changes !== 1) {
+    throw new Error("No active vault registered for challenge issuance.");
+  }
   return challenge;
 }
 
@@ -196,7 +196,7 @@ export async function appendCiphertextD1ForTests(
     throw new Error("Invalid append authorization.");
   }
   const requestDigest = await digestAppendIntentForTests(challenge, entry);
-  // The COALESCE(...) forces NOT NULL failure if no matching challenge exists.
+  // The NOT NULL constraint rejects a missing matching challenge.
   // The unique nonce constraint makes replay fail. D1 batch rolls back
   // consumption if the append trigger rejects an incorrect revision.
   const claim = db.prepare(`
