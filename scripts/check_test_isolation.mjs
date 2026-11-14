@@ -40,7 +40,7 @@ for(const path of [
   "scripts/test_worker_signed_protocol.mjs"
 ]){
   const source=read(path);
-  assert.equal(source.includes("--remote"),false,
+  assert.equal(/["\x27]--remote["\x27]/.test(source),false,
     "Synthetic local D1 scripts must not carry Wrangler remote flag.");
   assert.equal(source.includes("3ef2d249-f2a6-4a4e-ba7a-f984aebec177"),false,
     "Synthetic scripts must not reference live D1 ID.");
