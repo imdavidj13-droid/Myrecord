@@ -264,6 +264,15 @@ Test-only files: `docs/D1_REGISTRATION_PROTOTYPE.sql`, `src/security/d1-registra
 - The page retains the security warning and must not be marketed as an enabled evidence service or used to collect real testimony. Real vault registration must remain disabled pending independent assessment and completion of the secure protocol.
 - This is a frontend integration milestone; passing CI after these commits must be verified separately.
 
+## Phase 21 — actual private dashboard shell
+
+- Added `src/VaultDashboard.tsx` and connected it to the existing `/vault` route. This is the **real application dashboard component**, not a standalone demo or set of fictional records.
+- Implemented the genuine empty-history state, navigation to the existing writing, recovery, and export/deletion pages, and responsive layout using the approved visual design. There are no manufactured record counts, stored sample entries, or fake user identities.
+- An in-memory-only status notice after word confirmation explicitly explains that no account exists, that the words were discarded, and that the dashboard has no active storage.
+- Corrected homepage copy so it cannot be read as claiming that encryption, real record saving, or recovery are already enabled.
+- No vault data APIs or remote D1 migrations have been activated. The existing writer remains explicitly unsaved/unencrypted and must not be used for real testimony.
+- Verification is still required for the new commits, and independent security, privacy, legal and safeguarding assessments remain launch blockers.
+
 ## Threat model (initial)
 
 Protect against:
