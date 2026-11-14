@@ -56,6 +56,13 @@ export class EphemeralFictionalVault implements WorkspaceSession {
   export():Promise<WorkspaceHistory>{
     return this.read();
   }
+  async eraseEphemeralForTests():Promise<void>{
+    this.check();
+    // No server, database or browser-storage copies exist in this test mode.
+    // Clear the ciphertext references and close the key handle. Any
+    // deliberately downloaded plaintext export remains outside this control.
+    this.close();
+  }
   close():void{
     this.closed=true;
     this.entries=[];
