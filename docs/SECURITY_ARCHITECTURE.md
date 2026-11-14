@@ -203,6 +203,16 @@ Code: `src/security/d1-read-export.ts` and `src/security/d1-read-export.test.ts`
 
 **Limitations:** The vault metadata read (including latest revision and encrypted backup) occurs before the D1 batch, so a concurrently appended record can make an export fail closed. This does not establish a durable snapshot or anti-rollback guarantee. Ciphertext row metadata is not yet included in AES-GCM authenticated data; a malicious server could still suppress or substitute entries. This is deliberately limited to non-deployed synthetic tests; do not enable real evidence storage until independent security review, compliance assessment, and the remaining authorization protocols are complete.
 
+## Phase 15 — authenticated record history and deletion-pending prototype
+
+Files: `src/security/integrity-chain.ts`, `src/security/integrity-chain.test.ts`, `src/security/d1-deletion.ts`, `src/security/d1-deletion.test.ts` and updates to `docs/D1_TRANSACTIONAL_PROTOTYPE.sql` and the SQLite regression.
+
+**Evidence integrity experiment:** a separate version-2 AES-256-GCM envelope includes vault ID, entry ID, revision and the previous envelope digest in authenticated additional data (AAD). SHA-256 hashes the resulting complete envelope and links each revision to the previous revision. Test helpers reject altered metadata/ciphertext, reordering, discontinuities, wrong keys and chain-head mismatches. This module is NOT yet connected to the existing version-1 D1 append/read adapters. An operator can still remove the entire chain or present an older valid chain unless the client retains and checks an independently trusted head digest. Timestamps are not independently attested.
+
+**Deletion experiment:** a signed deletion challenge is scoped to a single vault and the precise `mark-deletion-pending` action. D1 batches challenge consumption and a conditional status change; a trigger rejects stale deletion claims once the vault is not active. Pending deletion blocks further appends. **No content is physically deleted, and the status transition is not proof of erasure.** Actual erasure of rows, encrypted key envelopes, provider backups and logs, retention/hold exceptions, recovery policy, and user-facing confirmation require explicit legal, safety and operational decisions before any deployment.
+
+All of the above is synthetic/test-only, with no routes or live D1 migration. The complete CI suite still needs independent verification.
+
 ## Threat model (initial)
 
 Protect against:
