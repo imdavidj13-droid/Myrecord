@@ -87,6 +87,51 @@ describe("P2 controller wiring on actual UI state contract",()=>{
     expect(app.getSnapshot().entries).toHaveLength(0);
     expect(app.getSnapshot().phase).toBe("closed");
   });
+  it("does not allow a stale failed unlock to close a newer session",async()=>{
+    const app=new VaultWorkspaceController();
+    let rejectOld:(error:Error)=>void=()=>{};
+    const oldClose=vi.fn();
+    const newClose=vi.fn();
+    const old:WorkspaceSession={
+      read:()=>new Promise((_resolve,reject)=>{rejectOld=reject;}),
+      appendSyntheticText:async()=>history([]),export:async()=>history([]),
+      close:oldClose
+    };
+    const next:WorkspaceSession={
+      read:async()=>history(["Fictional replacement session"]),
+      appendSyntheticText:async()=>history([]),export:async()=>history([]),
+      close:newClose
+    };
+    const pending=app.unlock(old);
+    app.close();
+    await app.unlock(next);
+    rejectOld(new Error("Delayed failure from previous session"));
+    await expect(pending).rejects.toThrow("could not be unlocked");
+    expect(app.getSnapshot().phase).toBe("ready");
+    expect(app.getSnapshot().entries[0].text).toBe("Fictional replacement session");
+    expect(oldClose).toHaveBeenCalledOnce();
+    expect(newClose).not.toHaveBeenCalled();
+  });
+  it("never exposes a late export after closing an in-flight session",async()=>{
+    const app=new VaultWorkspaceController();
+    let finish:(value:WorkspaceHistory)=>void=()=>{};
+    const close=vi.fn();
+    const session:WorkspaceSession={
+      read:async()=>history(["Fictional"]),
+      appendSyntheticText:async()=>history([]),
+      export:()=>new Promise(resolve=>{finish=resolve;}),
+      close
+    };
+    await app.unlock(session);
+    const pending=app.exportVerifiedHistory();
+    expect(app.getSnapshot().phase).toBe("exporting");
+    app.close();
+    finish(history(["Fictional"]));
+    await expect(pending).rejects.toThrow("closed");
+    expect(app.getSnapshot().entries).toHaveLength(0);
+    expect(app.getSnapshot().phase).toBe("closed");
+    expect(close).toHaveBeenCalledOnce();
+  });
   it("marks deletion pending through explicit signed-session operation and clears UI",async()=>{
     const app=new VaultWorkspaceController(),f=fake();
     await app.unlock(f.session);
