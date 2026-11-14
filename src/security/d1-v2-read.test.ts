@@ -28,7 +28,7 @@ function database(f:Awaited<ReturnType<typeof fixture>>){
   let batches=0;
   let reject=false;
   const db:PrototypeD1Database={
-    prepare(sql:string):PrototypeD1Statement{
+    prepare(_sql:string):PrototypeD1Statement{
       return {
         bind():PrototypeD1Statement{return this;},
         async first<T>():Promise<T|null>{
