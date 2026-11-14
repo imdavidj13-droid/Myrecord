@@ -330,3 +330,68 @@ html,body{overflow:hidden}
 .existing-site-test-actions button{display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:1px solid #6c916f;background:#fdfdf8;color:#244a31;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:600}
 .existing-site-test-actions button:disabled{opacity:.5;cursor:not-allowed}
 @media(max-width:650px){.existing-site-test-controls{padding:12px 17px}}
+
+
+/*
+ * Fix: the original editorial theme used a fixed 100dvh canvas with hidden
+ * overflow. Adding the fictional-test toolbar above it made the lower page
+ * unreachable. Allow the existing site's pages to grow and scroll instead.
+ */
+html,body,#root{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
+#root>div{min-height:100dvh}
+.existing-site-test-controls+.site{
+  height:auto;
+  min-height:calc(100dvh - 110px);
+  overflow:visible;
+}
+.existing-site-test-controls+.site>main{
+  display:block;
+  flex:1 0 auto;
+  overflow:visible;
+  min-height:0;
+}
+.existing-site-test-controls+.site>main>section{
+  height:auto;
+  min-height:0;
+  max-height:none;
+  overflow:visible;
+}
+.existing-site-test-controls+.site .experience-page{
+  height:auto;
+  min-height:calc(100dvh - 200px);
+  overflow:visible;
+  align-items:start;
+}
+.existing-site-test-controls+.site .experience-main{
+  overflow:visible;
+  justify-content:flex-start;
+  min-height:0;
+}
+.existing-site-test-controls+.site .writer-page{
+  height:auto;
+  min-height:calc(100dvh - 200px);
+  overflow:visible;
+}
+.existing-site-test-controls+.site .writing-layout{flex:1 0 auto;min-height:420px}
+.existing-site-test-controls+.site .writing-card{min-height:400px;height:auto}
+.existing-site-test-controls+.site .home-screen{
+  height:auto;
+  min-height:0;
+  overflow:visible;
+}
+.existing-site-test-controls+.site .home-lower{overflow:visible}
+.existing-site-test-controls+.site .vault-dashboard{
+  max-height:none;
+  height:auto;
+  overflow:visible;
+}
+.existing-site-test-controls+.site .vault-record-controls{
+  max-height:none;
+  overflow:visible;
+}
+@media(max-width:760px){
+  .existing-site-test-controls+.site{height:auto;min-height:calc(100dvh - 160px)}
+  .existing-site-test-controls+.site>main>section{min-height:0}
+  .existing-site-test-controls+.site .writing-card{min-height:460px}
+  .existing-site-test-controls+.site .writing-layout{min-height:0}
+}
