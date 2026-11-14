@@ -4,7 +4,7 @@ import {BrowserVaultSessionForTests, type VaultTransportForTests} from "./browse
 import {issueChallengeForTests, InMemoryProofVerifierForTests,
   importVerificationKeyForTests, type ProofChallengeV1} from "./access-proof";
 import {verifyRegistrationIntentForTests} from "./registration-intent";
-import {verifyIntegrityChainForTests, GENESIS_DIGEST_FOR_TESTS,
+import {verifyIntegrityChainForTests,
   type IntegrityEnvelopeV2} from "./integrity-chain";
 import type {SyntheticVaultBackup} from "./synthetic-vault-store";
 
