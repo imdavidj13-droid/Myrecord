@@ -1,12 +1,13 @@
+import DemoJourney from "./DemoJourney";
 import { useEffect, useState } from "react";
 import { ArrowRight, CheckCircle2, FileText, Info, Scale, UserRoundX, UsersRound, BookOpen, ChevronDown, Download, EyeOff, Feather, Focus, Heart, KeyRound, LockKeyhole, Menu, PenLine, ShieldCheck, ShieldAlert, Sparkles, Trash2, X } from "lucide-react";
 
-type Screen = "home" | "before" | "recovery" | "confirm" | "write" | "vault" | "return" | "export";
+type Screen = "home" | "before" | "recovery" | "confirm" | "write" | "vault" | "return" | "export" | "demo";
 type Mode = "free" | "journal" | "guided" | "focus";
 const routes: Record<Screen, string> = {
   home: "/", before: "/before-you-begin", recovery: "/recovery-words",
   confirm: "/confirm-recovery", write: "/write", vault: "/vault",
-  return: "/return", export: "/export"
+  return: "/return", export: "/export", demo: "/demo"
 };
 const screenFromPath = (path: string): Screen => {
   const normalized = path.replace(/\/+$/, "") || "/";
@@ -49,6 +50,7 @@ export default function App(){
     <header className="site-header">
       <button className="brand" onClick={()=>go("home")} aria-label="MySafeSpace home"><span className="brand-icon"><LockKeyhole size={27} strokeWidth={1.7}/></span><span>MySafeSpace</span></button>
       <nav className={mobileMenu?"open":""} aria-label="Main navigation">
+        <button onClick={()=>go("demo")}>Interactive demo</button>
         <button onClick={()=>go("before")}>How it works</button>
         <button onClick={()=>go("before")}>Your privacy</button>
         <button onClick={()=>go("export")}>Limitations</button>
@@ -57,6 +59,7 @@ export default function App(){
       <div className="header-actions"><button className="quiet" onClick={quit}><EyeOff size={16}/> Quick exit</button><button className="menu-button" aria-label="Toggle menu" onClick={()=>setMobileMenu(!mobileMenu)}>{mobileMenu?<X/>:<Menu/>}</button></div>
     </header>
     <main>
+    {screen==="demo"&&<DemoJourney exit={()=>go("home")}/>}
     {screen==="home"&&<section className="home-screen">
   <div className="home-hero-replica">
     <div className="home-photo" aria-hidden="true"><div className="photo-plant"><Botanical/></div><div className="photo-table"/><div className="photo-cup"><div className="coffee"/><div className="cup-handle"/></div><div className="photo-book"><div className="book-pages"/><div className="book-ribbon"/></div><div className="photo-pen"/></div>
@@ -68,7 +71,7 @@ export default function App(){
         <button className="button" onClick={()=>go("before")}><PenLine size={21}/> Start a private record <ArrowRight size={20}/></button>
         <button className="button button-outline" onClick={()=>go("return")}><KeyRound size={21}/> Return to your record <ArrowRight size={20}/></button>
       </div>
-      <div className="home-trust"><span><CheckCircle2 size={19}/> Private by design</span><span><CheckCircle2 size={19}/> No account required</span><span><CheckCircle2 size={19}/> No public posts</span></div>
+      <button className="demo-home-link" onClick={()=>go("demo")}>Explore the interactive sample journey <ArrowRight size={16}/></button><div className="home-trust"><span><CheckCircle2 size={19}/> Private by design</span><span><CheckCircle2 size={19}/> No account required</span><span><CheckCircle2 size={19}/> No public posts</span></div>
     </div>
   </div>
   <div className="home-feature-rail">
@@ -133,7 +136,7 @@ export default function App(){
     <div className="experience-intro"><span className="eyebrow">YOUR PRIVATE VAULT <span className="eyebrow-line"/></span><h1>A place to return<br/><em>whenever you're ready.</em></h1><p className="lead">A gentle timeline for your written account and anything you add later. Every original entry will remain distinguishable from later additions.</p></div>
     <div className="vault-placeholder"><div className="vault-placeholder-icon"><BookOpen size={30}/></div><div><span className="eyebrow">YOUR RECORD WILL APPEAR HERE</span><h3>There's nothing saved in this preview.</h3><p>Once encryption and storage are independently reviewed, this will become your private record timeline.</p></div></div>
     <div className="vault-quick-actions"><div><PenLine size={20}/><span>Write in your own words</span></div><div><FileText size={20}/><span>Add another dated entry</span></div><div><Download size={20}/><span>Export when you choose</span></div></div>
-    <div className="experience-actions"><button className="button" onClick={()=>go("write")}>Open writing space <ArrowRight size={18}/></button><button className="button button-outline" onClick={()=>go("export")}>Export and deletion preview <ArrowRight size={18}/></button></div>
+    <div className="experience-actions"><button className="button" onClick={()=>go("demo")}>Explore connected demo <ArrowRight size={18}/></button><button className="button button-outline" onClick={()=>go("write")}>Open writing space <ArrowRight size={18}/></button><button className="button button-outline" onClick={()=>go("export")}>Export and deletion preview <ArrowRight size={18}/></button></div>
   </div>
   <aside className="experience-scene" aria-hidden="true"><div className="scene-light"/><Botanical className="experience-botanical"/><div className="scene-journal"><div className="scene-journal-ribbon"/><div className="scene-journal-lines"/></div><div className="scene-cup"/><div className="scene-note"><span className="quote-mark">“</span><p>Your story stays yours.</p></div></aside>
 </section>}
