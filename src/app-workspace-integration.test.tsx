@@ -31,4 +31,25 @@ describe("P2 actual App route wiring — no public storage session",()=>{
       expect(markup).not.toContain("View vault preview");
     } finally {controller.close();vi.unstubAllGlobals();}
   });
+  it("keeps public recovery unavailable and only renders fictional recovery with explicit injection",()=>{
+    vi.stubGlobal("window",{location:{pathname:"/return"}});
+    try {
+      const publicMarkup=renderToStaticMarkup(createElement(App));
+      expect(publicMarkup).toContain("Recovery is disabled in this preview");
+      expect(publicMarkup).not.toContain("fictional-recovery-words");
+      const controller=new VaultWorkspaceController();
+      const testMarkup=renderToStaticMarkup(createElement(App,{
+        workspace:controller,
+        recoverFictional:async()=>({
+          read:async()=>({entries:[],latestRevision:0,headDigest:"0".repeat(64)}),
+          appendSyntheticText:async()=>({entries:[],latestRevision:0,headDigest:"0".repeat(64)}),
+          export:async()=>({entries:[],latestRevision:0,headDigest:"0".repeat(64)})
+        })
+      }));
+      expect(testMarkup).toContain("fictional-recovery-words");
+      expect(testMarkup).toContain("Recover fictional vault");
+      controller.close();
+    }finally{vi.unstubAllGlobals();}
+  });
+
 });
