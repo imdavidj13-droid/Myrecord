@@ -33,13 +33,17 @@ export default function App(){
   const [mobileMenu,setMobileMenu]=useState(false);
   useEffect(() => {
     const onPopState = () => {
-      setScreen(screenFromPath(window.location.pathname));
+      const nextScreen=screenFromPath(window.location.pathname);
+      if(nextScreen!=="recovery" && nextScreen!=="confirm") setRecoveryPhrase("");
+      setScreen(nextScreen);
       setMobileMenu(false);
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
   const go=(page:Screen)=>{
+    // Do not retain recovery words when leaving the onboarding screens.
+    if(page!=="recovery" && page!=="confirm") setRecoveryPhrase("");
     if(window.location.pathname !== routes[page]) window.history.pushState({screen:page},"",routes[page]);
     setScreen(page);
     setMobileMenu(false);
