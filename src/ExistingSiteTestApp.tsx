@@ -32,7 +32,7 @@ export default function ExistingSiteTestApp(){
   const close=()=>{
     workspace.close();setError(null);
   };
-  return <>
+  return <div className="existing-site-test-shell">
     <div className="existing-site-test-controls" role="region" aria-label="Fictional browser-only record test">
       <div className="existing-site-test-description">
         <ShieldAlert size={20} aria-hidden="true"/>
@@ -53,5 +53,5 @@ export default function ExistingSiteTestApp(){
       {error&&<p role="alert">{error}</p>}
     </div>
     <App workspace={workspace}/>
-  </>;
+  </div>;
 }
