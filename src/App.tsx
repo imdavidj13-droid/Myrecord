@@ -172,7 +172,11 @@ export default function App({workspace,recoverFictional,onStartTest,onEndTest,te
       <h1>{screen==="recovery"?"A way back to":"Keep your words"}<br/><em>{screen==="recovery"?"your private words.":"somewhere safe."}</em></h1>
       <p className="lead">This browser-only onboarding stage generates and checks a recovery phrase locally. No vault is created and nothing is stored on a server yet.</p>
     </div>
-    <RecoveryOnboarding
+    {onStartTest ? <div className="experience-details">
+      <div className="mini-alert" role="status"><ShieldAlert size={18}/> Recovery words are not linked to this in-browser fictional test. Nothing survives refresh or closing the tab.</div>
+      <button className="button" onClick={()=>go("write")}>Open writing space <ArrowRight size={18}/></button>
+      <button className="button button-outline" onClick={()=>go("vault")}>View fictional vault</button>
+    </div> : <RecoveryOnboarding
       key={screen}
       phase={screen==="recovery"?"generate":"confirm"}
       phrase={recoveryPhrase}
@@ -185,7 +189,7 @@ export default function App({workspace,recoverFictional,onStartTest,onEndTest,te
         setOnboardingConfirmed(true);
         go("vault");
       }}
-    />
+    />}
     {screen==="recovery"&&<button className="text-link" onClick={()=>{setRecoveryPhrase("");go("before");}}>Go back <ArrowRight size={16}/></button>}
   </div>
   <aside className="experience-scene" aria-hidden="true"><div className="scene-light"/><Botanical className="experience-botanical"/><div className="scene-journal"><div className="scene-journal-ribbon"/><div className="scene-journal-lines"/></div><div className="scene-cup"/><div className="scene-note"><span className="quote-mark">“</span><p>Your privacy is part of every step.</p></div></aside>
