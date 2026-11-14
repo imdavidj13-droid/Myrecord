@@ -237,6 +237,15 @@ Test-only files: `docs/D1_REGISTRATION_PROTOTYPE.sql`, `src/security/d1-registra
 
 **Unresolved security limitation:** The signed intent does not prove to an untrusted server that a recovery phrase derives the submitted lookup ID and unlocks both envelopes; that consistency is checked only by the client-side preflight. Enrollment also needs anti-abuse controls, secure isolation of user material, recovery and deletion policy, production read/export semantics, and independent cryptographic/privacy/legal reviews. The full CI build/test result is not independently confirmed in this chat. This is not safe to use for live survivor testimony.
 
+## Phase 18 — isolated Wrangler D1 SQL lifecycle smoke test
+
+- Added `scripts/d1_local_lifecycle_fixture.sql` to test a complete **synthetic SQL-only** registration-and-two-revision sequence against Wrangler local D1. The fixture uses fake signatures/metadata and intentionally is **not cryptographically authentic testimony**.
+- CI now checks successful vault registration, registration challenge consumption, creation of the v2 genesis head, two sequential v2 inserts, and the resulting latest revision and digest.
+- Negative local-D1 CI assertions verify that creating a vault without a consumed registration challenge is rejected, that a consumed challenge cannot be claimed again, that an incorrect previous digest is rejected, and that stored v2 history cannot be overwritten.
+- Local smoke tests and browser-side cryptographic tests are separate. They **do not prove** that a deployed Worker safely composes both, and are not an end-to-end remote D1 concurrency test.
+- Only `wrangler.d1-test.jsonc` and `--local` commands are used. The real `mysafespace-db` is not accessed. No production Worker handlers are enabled.
+- Verify GitHub Actions after the latest commit before reporting these new checks as passing.
+
 ## Threat model (initial)
 
 Protect against:
