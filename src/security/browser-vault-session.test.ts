@@ -168,6 +168,33 @@ describe("browser vault session composition — synthetic-only boundary",()=>{
     expect(fake.wire).toHaveLength(before);
   });
 
+  it("rejects a delayed authenticated read that finishes after session closure",async()=>{
+    const fake=syntheticTransport(),phrase=generateRecoveryWords();
+    const session=await BrowserVaultSessionForTests.register(fake.transport,phrase);
+    const original=fake.transport.read.bind(fake.transport);
+    let release:(result:Awaited<ReturnType<typeof original>>)=>void=()=>{};
+    fake.transport.read=async input=>{
+      const result=await original(input);
+      return new Promise(resolve=>{release=resolve;});
+    };
+    const pending=session.read();
+    // Allow the read adapter to reach its deferred response.
+    for(let i=0;i<50;i++){
+      if(release.toString().includes("resolve"))break;
+      await Promise.resolve();
+    }
+    session.close();
+    release({entries:[],latestRevision:0,headDigest:"0".repeat(64)});
+    await expect(pending).rejects.toThrow("closed");
+  });
+  it("rejects subsequent operations after the test session is closed",async()=>{
+    const fake=syntheticTransport(),phrase=generateRecoveryWords();
+    const session=await BrowserVaultSessionForTests.register(fake.transport,phrase);
+    session.close();
+    await expect(session.read()).rejects.toThrow("closed");
+    await expect(session.export()).rejects.toThrow("closed");
+    await expect(session.appendSyntheticText("Fictional")).rejects.toThrow("closed");
+  });
   it("uses a separate authorization action for export",async()=>{
     const fake=syntheticTransport(),phrase=generateRecoveryWords();
     const session=await BrowserVaultSessionForTests.register(fake.transport,phrase);
