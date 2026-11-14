@@ -300,3 +300,21 @@ html,body{overflow:hidden}
 .vault-dashboard-start{display:flex;align-items:center;justify-content:space-between;text-align:left;gap:12px;border:0;background:transparent;color:#3c6243;font-size:12px;padding:8px 2px}
 @media(max-width:900px){.vault-dashboard-grid{grid-template-columns:1fr}.vault-dashboard-side{grid-template-columns:1fr 1fr}.vault-dashboard-start{grid-column:1/-1}}
 @media(max-width:760px){.site>main:has(.vault-dashboard){overflow:auto}.vault-dashboard{overflow:visible;padding:24px 19px 40px}.vault-dashboard-head{align-items:flex-start;flex-direction:column}.vault-dashboard-status{max-width:none;width:100%}.vault-dashboard-grid,.vault-dashboard-side{grid-template-columns:1fr}.vault-dashboard-main{min-height:330px}.vault-dashboard-start{grid-column:auto}}
+
+
+/* P2/P3 isolated workspace states, visible only with an injected fictional vault */
+.vault-workspace-state{padding:12px 14px;border-radius:7px;background:#edf2e8;border:1px solid #dce7d5;color:#47644b;font-size:12px;line-height:1.55}
+.vault-workspace-error{padding:12px 14px;border-radius:7px;background:#fff0ea;border:1px solid #e6c5b8;color:#8b413c;font-size:12px;line-height:1.6;margin:10px}
+.vault-workspace-history{display:grid;gap:13px;margin-top:16px;overflow-y:auto;max-height:48vh}
+.vault-workspace-entry{padding:15px 19px;background:#f8faf3;border:1px solid #e0eadb;border-radius:8px}
+.vault-workspace-entry p{font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;color:#395642}
+.vault-workspace-footer{display:flex;flex-wrap:wrap;gap:15px;align-items:center;padding:12px 0;color:#66816c;font-size:12px}
+.vault-record-controls{display:grid;gap:14px;max-height:55vh;overflow-y:auto}
+.vault-record-control{padding:14px 17px;background:#f7f7ef;border:1px solid #e0e7d9;border-radius:10px;display:grid;gap:10px}
+.vault-record-control h3{font-size:19px;margin:0}
+.vault-record-control p{font-size:12px;line-height:1.55;margin:0}
+.vault-record-control .button{justify-self:start;font-size:12px;min-height:36px}
+.vault-export-ready,.vault-delete-confirm{display:grid;gap:10px;justify-items:start}
+.vault-delete-confirm label{font-size:12px;line-height:1.5}
+.vault-delete-confirm input{width:min(100%,420px);padding:10px 12px;background:#fffcf6;border:1px solid #b6cbb4;border-radius:6px;color:#244b32}
+@media(max-width:760px){.vault-record-controls,.vault-workspace-history{max-height:none}.vault-record-control{padding:14px}}
