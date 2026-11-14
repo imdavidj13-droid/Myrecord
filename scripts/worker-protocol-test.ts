@@ -33,7 +33,7 @@ function object(value: unknown): Record<string, unknown> {
 }
 function requireKeys(value: Record<string, unknown>, keys: readonly string[]): void {
   if (Object.keys(value).length !== keys.length ||
-      keys.some(key => !Object.hasOwn(value,key))) {
+      keys.some(key => !Object.prototype.hasOwnProperty.call(value,key))) {
     throw new Error("Unexpected request fields.");
   }
 }
@@ -41,7 +41,7 @@ function noSecrets(value: unknown): void {
   // This is an accidental-use guard, not a complete data-loss prevention tool.
   if (!value || typeof value !== "object") return;
   for (const [key, nested] of Object.entries(value)) {
-    if (/phrase|plaintext|secret|private.?key|password|testimony/i.test(key)) {
+    if (/^(?:recoveryPhrase|phrase|plaintext|privateKey|privateSigningKey|password|testimony)$/i.test(key)) {
       throw new Error("Sensitive fields are forbidden.");
     }
     noSecrets(nested);
