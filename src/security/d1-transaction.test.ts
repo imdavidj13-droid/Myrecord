@@ -36,6 +36,7 @@ function recordingDB(jwk: JsonWebKey) {
           statements.push({ sql, args });
           return this;
         },
+        async run() { return { meta: { changes: 1 } }; },
         async first<T>(): Promise<T | null> {
           return { verification_jwk: JSON.stringify(jwk) } as T;
         }
@@ -63,13 +64,11 @@ describe("D1 atomic append adapter — synthetic only, no live D1", () => {
       f.signing.publicKey, f.challenge,
       { ...f.entry, entryId: "differentEntry_123456789" }, f.signature
     )).toBe(false);
+    const original = f.entry.ciphertext.ciphertext;
+    const mutated = (original.startsWith("A") ? "B" : "A") + original.slice(1);
     const altered = { ...f.entry, ciphertext: {
-      ...f.entry.ciphertext,
-      ciphertext: f.entry.ciphertext.ciphertext.replace(/^./, "A")
+      ...f.entry.ciphertext, ciphertext: mutated
     }};
-    if (altered.ciphertext.ciphertext === f.entry.ciphertext.ciphertext) {
-      altered.ciphertext.ciphertext = "B" + altered.ciphertext.ciphertext.slice(1);
-    }
     expect(await verifyBoundAppendForTests(
       f.signing.publicKey, f.challenge, altered, f.signature
     )).toBe(false);
@@ -124,7 +123,7 @@ describe("D1 atomic append adapter — synthetic only, no live D1", () => {
     const f = await fixture();
     const db: PrototypeD1Database = {
       prepare(): PrototypeD1Statement {
-        return { bind(): PrototypeD1Statement { return this; }, async first<T>() { return { verification_jwk: JSON.stringify(f.signing.envelope.publicKey) } as T; } };
+        return { bind(): PrototypeD1Statement { return this; }, async run() { return { meta: { changes: 1 } }; }, async first<T>() { return { verification_jwk: JSON.stringify(f.signing.envelope.publicKey) } as T; } };
       },
       async batch() { throw new Error("D1 transaction rolled back"); }
     };
