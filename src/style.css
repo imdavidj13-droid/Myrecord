@@ -238,3 +238,27 @@ html,body{overflow:hidden}
  .scene-note{top:8%;width:65%}
  .scene-cup{right:14%;bottom:40%}
 }
+
+
+/* Browser-only onboarding: the actual recovery flow remains disconnected from live vault APIs */
+.recovery-live-panel{display:flex;flex-direction:column;gap:15px;min-width:0;max-width:100%;margin-top:8px}
+.recovery-live-note{display:flex;align-items:flex-start;gap:12px;border:1px solid #e5d5b7;background:#fcf5e9;border-radius:9px;padding:14px 17px;color:#765b35}
+.recovery-live-note>svg{flex-shrink:0;margin-top:2px}
+.recovery-live-note strong{font-size:12px}
+.recovery-live-note p{font-size:12px;line-height:1.55;color:#796545;margin:6px 0 0}
+.recovery-live-controls{display:flex;flex-wrap:wrap;align-items:center;gap:15px}
+.recovery-live-words{margin:0;max-height:220px;overflow-y:auto}
+.recovery-live-words .word-placeholder{display:flex;align-items:center;gap:10px;min-width:0}
+.recovery-live-words .word-placeholder span{word-break:break-word;font-size:13px;color:#355a3e}
+.recovery-live-panel .acknowledge{margin:2px 0;line-height:1.45}
+.recovery-live-panel .experience-actions{margin:0}
+.recovery-live-panel .experience-actions .button{min-height:39px;padding:9px 15px}
+.recovery-live-panel textarea{width:100%;min-height:88px;resize:vertical;border:1px solid #d8e2d4;border-radius:6px;background:#fffefa;padding:13px 15px;color:#284536;font:15px/1.5 Arial,sans-serif}
+.recovery-live-panel .field-label{margin:3px 0 -7px}
+.recovery-live-explanation{font-size:13px;line-height:1.6;color:#5d745f}
+.recovery-live-error{font-size:12px;color:#9b3c32;font-weight:600;margin:0}
+@media(max-width:760px){
+ .recovery-live-words{max-height:none;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .recovery-live-note{padding:12px}
+ .recovery-live-panel .experience-actions{flex-direction:column;align-items:stretch}
+}
