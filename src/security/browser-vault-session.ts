@@ -162,6 +162,7 @@ export class BrowserVaultSessionForTests {
     const history = await this.transport.read({
       vaultId: this.vaultId, action, challenge, proof
     });
+    this.assertOpen();
     if (!history || !Number.isSafeInteger(history.latestRevision) ||
         history.latestRevision < 0 ||
         history.entries.length !== history.latestRevision) {
@@ -194,6 +195,7 @@ export class BrowserVaultSessionForTests {
         text: await decryptIntegrityEntryForTests(this.dataKey, envelope)
       });
     }
+    this.assertOpen();
     this.observedRevision = verified.revision;
     this.observedHead = verified.headDigest;
     return {entries, latestRevision: verified.revision, headDigest: verified.headDigest};
@@ -203,6 +205,7 @@ export class BrowserVaultSessionForTests {
     this.assertOpen();
     if (typeof text !== "string" || !text.trim()) throw new Error("Empty entry.");
     const current = await this.read();
+    this.assertOpen();
     const envelope = await encryptIntegrityEntryForTests(
       this.dataKey, text, this.vaultId, randomEntryId(),
       current.latestRevision + 1,
@@ -216,6 +219,7 @@ export class BrowserVaultSessionForTests {
       this.signingKey, challenge, envelope
     );
     await this.transport.append({envelope,challenge,proof});
+    this.assertOpen();
     const updated = await this.read();
     // Verify the server did not acknowledge while suppressing our record.
     if (updated.latestRevision !== envelope.revision ||
@@ -234,11 +238,14 @@ export class BrowserVaultSessionForTests {
     const mark=this.transport.markDeletionPending;
     if(!issue || !mark)throw new Error("Deletion transport is unavailable.");
     const challenge=await issue(this.vaultId);
+    this.assertOpen();
     if(challenge.action!=="delete" || challenge.vaultId!==this.vaultId) {
       throw new Error("Incorrect deletion challenge.");
     }
     const intent=await signDeletionIntentForTests(this.signingKey,challenge);
+    this.assertOpen();
     await mark(challenge,intent);
+    this.assertOpen();
     this.close();
   }
 
