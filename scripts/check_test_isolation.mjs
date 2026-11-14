@@ -45,4 +45,14 @@ for(const path of [
   assert.equal(source.includes("3ef2d249-f2a6-4a4e-ba7a-f984aebec177"),false,
     "Synthetic scripts must not reference live D1 ID.");
 }
+assert.equal(read("index.html").includes("local-workspace-test-main"),false,
+  "Production HTML must not contain local browser test entrypoint.");
+assert.equal(read("src/main.tsx").includes("local-workspace-test-main"),false,
+  "Production React entrypoint must not import local browser test.");
+assert.equal(read("vite.config.ts").includes("local-test.html"),false,
+  "Normal Vite config must not bundle local browser test HTML.");
+const localVite=read("vite.local-test.config.ts");
+assert.ok(localVite.includes('host:"127.0.0.1"') &&
+  localVite.includes('target:"http://127.0.0.1:18880"'),
+  "Test-only Vite config must remain bound to localhost.");
 console.log("PASS: test-only Worker configs use fictional D1; public bundle entrypoints and production config are isolated.");
