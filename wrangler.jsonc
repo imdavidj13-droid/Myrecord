@@ -4,5 +4,12 @@
   "assets": {
     "directory": "./dist",
     "not_found_handling": "single-page-application"
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mysafespace-db",
+      "database_id": "3ef2d249-f2a6-4a4e-ba7a-f984aebec177"
+    }
+  ]
 }
