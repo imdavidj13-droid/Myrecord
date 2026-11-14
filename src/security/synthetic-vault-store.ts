@@ -17,6 +17,7 @@ import type { EncryptedEntryV1 } from "./crypto";
 import type { WrappedVaultKeyV1 } from "./key-wrapping";
 import type { WrappedSigningKeyV1 } from "./signing-recovery";
 import { isValidVaultLookupIdForTests } from "./recovery-bootstrap";
+import { verifyRegistrationIntentForTests, type SignedRegistrationIntentV1 } from "./registration-intent";
 
 const vaultIdPattern = /^[A-Za-z0-9_-]{22}$/;
 const entryIdPattern = /^[A-Za-z0-9_-]{16,128}$/;
@@ -104,24 +105,27 @@ export class SyntheticVaultStoreForTests {
 
   async register(
     backup: SyntheticVaultBackup, proof: SignedProofV1, now: number,
-    lookupId?: string
+    lookupId: string, intent: SignedRegistrationIntentV1
   ): Promise<void> {
     validateBackup(backup);
-    if (lookupId !== undefined && !isValidVaultLookupIdForTests(lookupId)) {
+    if (!isValidVaultLookupIdForTests(lookupId)) {
       throw new Error("Invalid recovery lookup identifier.");
     }
     const verificationKey = await importVerificationKeyForTests(backup.verificationKey);
-    if (!await this.challenges.verify(proof, verificationKey, backup.vaultId, "append", now)) {
+    if (!await this.challenges.verify(proof, verificationKey, backup.vaultId, "append", now) ||
+        !await verifyRegistrationIntentForTests(
+          verificationKey, proof.challenge, backup, lookupId, intent
+        )) {
       throw new Error("Registration authorization denied.");
     }
     if (this.vaults.has(backup.vaultId)) throw new Error("Vault already registered.");
-    if (lookupId && this.lookupIndex.has(lookupId)) {
+    if (this.lookupIndex.has(lookupId)) {
       throw new Error("Recovery identifier already registered.");
     }
     this.vaults.set(backup.vaultId, {
       backup: snapshot(backup), verifierKey: verificationKey, entries: []
     });
-    if (lookupId) this.lookupIndex.set(lookupId, backup.vaultId);
+    this.lookupIndex.set(lookupId, backup.vaultId);
   }
 
   /**
