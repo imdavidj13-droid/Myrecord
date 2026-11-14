@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, BookOpen, ChevronDown, CircleHelp, Download, EyeOff, Feather, Focus, Heart, KeyRound, Leaf, LockKeyhole, Menu, PenLine, ShieldCheck, ShieldAlert, Sparkles, Trash2, X } from "lucide-react";
+import { ArrowRight, CheckCircle2, FileText, Info, Scale, UserRoundX, UsersRound, BookOpen, ChevronDown, CircleHelp, Download, EyeOff, Feather, Focus, Heart, KeyRound, Leaf, LockKeyhole, Menu, PenLine, ShieldCheck, ShieldAlert, Sparkles, Trash2, X } from "lucide-react";
 
 type Screen = "home" | "before" | "recovery" | "confirm" | "write" | "vault" | "return" | "export";
 type Mode = "free" | "journal" | "guided" | "focus";
@@ -27,35 +27,49 @@ export default function App(){
   return <div className={`site screen-${screen} ${mode==="focus"&&screen==="write"?"focus-site":""}`}>
     <div className="demo-strip"><ShieldAlert size={15}/><strong>DESIGN PROTOTYPE</strong><span>Not encrypted or saved. Do not enter real experiences or identifying details.</span></div>
     <header className="site-header">
-      <button className="brand" onClick={()=>go("home")} aria-label="MyRecord home"><span className="brand-icon"><Leaf size={19} strokeWidth={1.7}/></span><span>myrecord<span className="brand-dot">.</span></span></button>
+      <button className="brand" onClick={()=>go("home")} aria-label="MyRecord home"><span className="brand-icon"><LockKeyhole size={27} strokeWidth={1.7}/></span><span>MyRecord</span></button>
       <nav className={mobileMenu?"open":""} aria-label="Main navigation">
-        <button onClick={()=>go("home")}>Home</button>
         <button onClick={()=>go("before")}>How it works</button>
-        <button onClick={()=>go("vault")}>Vault preview</button>
-        <button onClick={()=>go("return")}>Return to a record</button>
+        <button onClick={()=>go("before")}>Your privacy</button>
+        <button onClick={()=>go("export")}>Limitations</button>
+        <button onClick={()=>go("before")}>Support</button>
       </nav>
-      <div className="header-actions"><button className="quiet" onClick={quit}><EyeOff size={16}/> Quick exit</button><button className="button button-small" onClick={()=>go("before")}>Begin privately <ArrowRight size={15}/></button><button className="menu-button" aria-label="Toggle menu" onClick={()=>setMobileMenu(!mobileMenu)}>{mobileMenu?<X/>:<Menu/>}</button></div>
+      <div className="header-actions"><button className="quiet" onClick={quit}><EyeOff size={16}/> Quick exit</button><button className="menu-button" aria-label="Toggle menu" onClick={()=>setMobileMenu(!mobileMenu)}>{mobileMenu?<X/>:<Menu/>}</button></div>
     </header>
     <main>
     {screen==="home"&&<section className="home-screen">
-  <Botanical className="home-leaves"/>
-  <div className="home-main">
-    <div className="home-copy">
-      <div className="eyebrow"><span className="eyebrow-line"/> A QUIET PLACE THAT BELONGS TO YOU</div>
-      <h1>Some things take time<br/>to <em>put into words.</em></h1>
-      <p className="hero-copy">A gentle place to write down what happened, in your own words, at your own pace. You don't have to know what comes next.</p>
-      <div className="hero-actions"><button className="button" onClick={()=>go("before")}>Begin a private record <ArrowRight size={17}/></button><button className="text-link" onClick={()=>go("write")}>Explore the writing space <ArrowRight size={16}/></button></div>
-      <p className="hero-fine"><ShieldCheck size={17}/> No public posts. Secure saving isn't available in this preview.</p>
-    </div>
-    <div className="home-aside">
-      <div className="home-note"><span className="quote-mark">“</span><h2>There's no right way<br/>to begin.</h2><p>Start wherever feels easiest. A few words are enough for today.</p><span className="home-note-flower">✳</span></div>
-      <div className="home-mini-journal" aria-hidden="true"><span>A page for your own words</span><div/><div/><div/></div>
+  <div className="home-hero-replica">
+    <div className="home-photo" aria-hidden="true"><div className="photo-plant"><Botanical/></div><div className="photo-table"/><div className="photo-cup"><div className="coffee"/><div className="cup-handle"/></div><div className="photo-book"><div className="book-pages"/><div className="book-ribbon"/></div><div className="photo-pen"/></div>
+    <div className="home-hero-content">
+      <div className="eyebrow">A PRIVATE, ENCRYPTED SPACE <span className="eyebrow-line"/></div>
+      <h1>Document your experience<br/>in your own time</h1>
+      <p>A private place to write and keep a record of what happened.<br/>Your words, your choices, and your own pace.</p>
+      <div className="home-cta">
+        <button className="button" onClick={()=>go("before")}><PenLine size={21}/> Start a private record <ArrowRight size={20}/></button>
+        <button className="button button-outline" onClick={()=>go("return")}><KeyRound size={21}/> Return to your record <ArrowRight size={20}/></button>
+      </div>
+      <div className="home-trust"><span><CheckCircle2 size={19}/> Private by design</span><span><CheckCircle2 size={19}/> No account required</span><span><CheckCircle2 size={19}/> No public posts</span></div>
     </div>
   </div>
-  <div className="home-benefits">
-    <Feature icon={<PenLine/>} title="Your words" body="Write as much or as little as you like."/>
-    <Feature icon={<LockKeyhole/>} title="Privacy first" body="No public posts or compulsory accounts."/>
-    <Feature icon={<BookOpen/>} title="Your pace" body="You decide when you're ready to return."/>
+  <div className="home-feature-rail">
+    <Feature icon={<LockKeyhole/>} title="Your words, encrypted" body="The finished service will encrypt your writing on your device."/>
+    <Feature icon={<UserRoundX/>} title="No registration" body="No name or email address needed to create a record."/>
+    <Feature icon={<FileText/>} title="A record over time" body="Return to add more whenever you need to."/>
+    <Feature icon={<Download/>} title="In your control" body="Export or delete your record when you choose."/>
+  </div>
+  <div className="home-lower">
+    <div className="how-block"><h2>How it works</h2><div className="how-steps">
+      <div><span className="how-icon"><PenLine/></span><h3>Write</h3><p>Record what you want to remember, in your own words.</p></div>
+      <ArrowRight className="how-arrow"/><div><span className="how-icon"><LockKeyhole/></span><h3>Encrypt</h3><p>Your writing is encrypted on your device.</p></div>
+      <ArrowRight className="how-arrow"/><div><span className="how-icon"><KeyRound/></span><h3>Keep your 12 words</h3><p>Your recovery phrase lets you return later.</p></div>
+      <ArrowRight className="how-arrow"/><div><span className="how-icon"><BookOpen/></span><h3>Return anytime</h3><p>Access and export your record when you're ready.</p></div>
+    </div></div>
+    <div className="important-block"><h2>Important to know</h2><div className="important-items">
+      <span><Info/> This is a private record, not a police report.</span>
+      <span><UsersRound/> There are no public posts or discussions.</span>
+      <span><EyeOff/> We cannot reset lost recovery words in the intended design.</span>
+      <span><Scale/> Lawful preservation or disclosure requests may apply.</span>
+    </div><button className="text-link" onClick={()=>go("before")}>Read the privacy limitations <ArrowRight size={15}/></button></div>
   </div>
 </section>}
     {screen==="before"&&<section className="flow-page"><Step count="01" label="BEFORE YOU BEGIN"/><div className="flow-columns"><div><span className="eyebrow">A MOMENT FOR YOUR PRIVACY</span><h1>A place to write,<br/><em>on your terms.</em></h1><p className="lead">You don't need to provide a name, email address or explanation. Take a moment to understand how the finished private record will work.</p><div className="detail-list"><Detail icon={<LockKeyhole/>} title="Your writing should remain yours" body="In the finished service, text will be encrypted in your browser before upload, with keys held only by you."/><Detail icon={<KeyRound/>} title="Recovery words will matter" body="A 12-word phrase will be the only way to restore access. Losing it could mean losing the entire record."/><Detail icon={<ShieldCheck/>} title="You choose whether to share" body="No public posts and no automatic reporting to police. You can choose to export your account when ready."/></div></div><div className="side-card large-card"><div className="card-decoration"><Botanical/></div><span className="eyebrow">A GENTLE REMINDER</span><h3>You are in control<br/>of how you begin.</h3><p>Write only what you want to. You can stop whenever you need to.</p><div className="notice"><ShieldAlert size={19}/><span>This is a non-secure interface preview. Please use fictional text only.</span></div><button className="button full-width" onClick={()=>go("recovery")}>Preview vault setup <ArrowRight size={16}/></button><button className="muted-link" onClick={()=>go("write")}>Explore the writing design instead</button></div></div></section>}
@@ -65,7 +79,7 @@ export default function App(){
     {screen==="vault"&&<section className="flow-page"><span className="eyebrow">YOUR PRIVATE SPACE · DESIGN PREVIEW</span><div className="vault-heading"><div><h1>A place to return <em>to.</em></h1><p className="lead">In the finished vault, your original words will be preserved and later additions clearly separated.</p></div><button className="button" onClick={()=>go("write")}>Write a new entry <ArrowRight size={17}/></button></div><div className="vault-layout"><div className="vault-main"><div className="vault-empty"><div className="empty-mark"><BookOpen size={29}/></div><h2>Your record will live here.</h2><p>This preview has no saved entries. When secure storage is ready, dated entries will appear here in a private timeline.</p><button className="button button-outline" onClick={()=>go("write")}>Explore writing <ArrowRight size={16}/></button></div></div><aside className="vault-side"><div className="side-card"><span className="eyebrow">YOUR WORDS, YOUR CHOICE</span><h3>Come back whenever you're ready.</h3><p>There is no timeline you have to follow.</p><Botanical/></div><div className="side-card"><h3>Manage your record</h3><button className="side-action" onClick={()=>go("export")}><Download size={17}/> Export and deletion preview <ArrowRight size={15}/></button></div></aside></div></section>}
     {screen==="return"&&<section className="flow-page narrow-flow"><span className="eyebrow">RETURN TO YOUR WORDS</span><h1>Welcome <em>back.</em></h1><p className="lead centered">The finished service will unlock your private record locally using your 12 recovery words.</p><div className="recovery-panel"><div className="recovery-icon"><LockKeyhole size={27}/></div><h3>Enter your 12 recovery words</h3><p className="centered muted">For this design preview, no recovery credentials work. Please do not enter a real phrase.</p><label htmlFor="recovery-demo" className="field-label">Recovery phrase · disabled in prototype</label><textarea id="recovery-demo" disabled value={phrase} onChange={e=>setPhrase(e.target.value)} placeholder="Recovery phrase entry will be enabled after independent security review."/><button className="button full-width" disabled>Unlock my record <ArrowRight size={16}/></button><button className="muted-link" onClick={()=>go("before")}>Create a new vault — design preview</button></div></section>}
     {screen==="export"&&<section className="flow-page"><span className="eyebrow">YOUR RECORD, YOUR DECISION</span><h1>Take your words<br/><em>with you.</em></h1><p className="lead">Once the secure service is built, you will be able to decrypt and export your full written account locally, without automatically sharing it with anyone.</p><div className="export-grid"><div className="export-card"><Download size={28}/><h3>Prepare a complete record</h3><p>Original entry, later additions, clear timestamps and verification information — prepared for your own use or to share voluntarily.</p><button className="button button-outline" disabled>Export · not available</button></div><div className="export-card"><Trash2 size={28}/><h3>Request deletion</h3><p>The final system will explain how deletion works, including applicable legal obligations and backup retention limits.</p><button className="button button-outline" disabled>Delete · not available</button></div></div><div className="notice export-notice"><ShieldAlert size={19}/><span>Downloading readable records can expose them to others who can access your device. The finished product will explain this before exporting.</span></div></section>}
-    </main><footer><div className="footer-brand"><Leaf size={19}/> myrecord<span>.</span></div><p>A private space to write. In your own time.</p><div className="footer-links"><button onClick={()=>go("home")}>Home</button><button onClick={()=>go("before")}>Privacy</button><button onClick={()=>go("return")}>Return</button></div><small>DESIGN PROTOTYPE — no encrypted storage or recovery exists yet.</small></footer>
+    </main>
   </div>;
 }
 function Feature({icon,title,body}:{icon:React.ReactNode,title:string,body:string}){return <article className="feature"><div className="feature-icon">{icon}</div><h3>{title}</h3><p>{body}</p></article>}
