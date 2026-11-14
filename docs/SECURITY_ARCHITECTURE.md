@@ -172,6 +172,16 @@ Files: `docs/D1_TRANSACTIONAL_PROTOTYPE.sql`, `src/security/d1-transaction.ts`, 
 - The user's Cloudflare D1 binding exists in `wrangler.jsonc`, but **no remote D1 migration, INSERT or API request has been performed** by this phase.
 - Next verification gate: inspect CI results, test a disposable isolated D1 database with artificial ciphertext only, review transaction failure behavior under concurrent Workers, and obtain independent protocol/security review before live enablement.
 
+## Phase 12 — Wrangler local D1 migration check (isolated from production)
+
+- Added `wrangler.d1-test.jsonc` with a **synthetic, separate** D1 database name and ID; it does not reference the user's real `mysafespace-db` UUID.
+- GitHub Actions now invokes `wrangler d1 execute --local --config wrangler.d1-test.jsonc --file docs/D1_TRANSACTIONAL_PROTOTYPE.sql` and verifies the expected `sandbox_entries` table exists.
+- This tests the draft schema against Wrangler's local D1 implementation in CI, alongside the standard-library SQLite constraint and two-writer race regressions.
+- The local Wrangler configuration does not have a remote Cloudflare database attached; this workflow **does not** execute `--remote`, install the draft schema in the user's database, or enable API endpoints.
+- CI status and any actual local-Wrangler run results must be checked before reporting tests as passed. This is not a concurrent edge-Worker integration test.
+
+**Production blocker:** All sensitive operations still require a completed, audited access protocol, robust D1 read/export/delete and registration transaction logic, abuse controls, privacy engineering, client-side AEAD metadata binding, and a formal security review. Enabling external access now would be unsafe.
+
 ## Threat model (initial)
 
 Protect against:
