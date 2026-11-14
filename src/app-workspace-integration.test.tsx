@@ -15,6 +15,8 @@ describe("Existing-site header and fictional test controls",()=>{
       expect(markup).toContain("Start test");
       expect(markup).not.toContain('class="existing-site-test-controls"');
       expect(markup).toContain("Your writing");
+      expect(markup).not.toContain("ISOLATED TEST SESSION");
+      expect(markup).not.toContain("Fictional test mode — not a secure records service");
     }finally{vi.unstubAllGlobals();}
   });
 });
