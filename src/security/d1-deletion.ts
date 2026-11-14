@@ -29,7 +29,7 @@ function decodeSignature(raw: string): ArrayBuffer {
   }
   const normalized = raw.replace(/-/g, "+").replace(/_/g, "/") + "==";
   const binary = atob(normalized);
-  const data = Uint8Array.from(binary, c => c.charCodeAt(0));
+  const data = Uint8Array.from(Array.from(binary, char => char.charCodeAt(0)));
   if (data.length !== 64 || b64url(data) !== raw) throw new Error("Invalid deletion signature.");
   return buffer(data);
 }
