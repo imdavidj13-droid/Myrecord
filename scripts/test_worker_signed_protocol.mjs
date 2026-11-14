@@ -137,15 +137,27 @@ async function run() {
     assert.equal(body.includes("FICTIONAL WRITTEN ENTRY TWO"),false,
       "Second plaintext crossed HTTP boundary");
   }
+  const captured=networkPayloads.map(value=>JSON.parse(value));
+  const registration=captured.find(value=>value.backup && value.lookupId && value.intent);
+  assert.ok(registration,"Registration request was not captured.");
+  const issued=await transport.issueReadChallenge(registration.backup.vaultId,"read");
   let rejected=false;
   try {
-    await post("read",{vaultId:"X".repeat(22),action:"read",
-      challenge:{version:1,action:"read",vaultId:"X".repeat(22),
-        nonce:"Y".repeat(43),issuedAt:Date.now(),expiresAt:Date.now()+60000},
-      proof:{version:1,signature:"Z".repeat(86)}
+    await post("read",{vaultId:registration.backup.vaultId,action:"read",
+      challenge:issued,proof:{version:1,signature:"Z".repeat(86)}
     });
   }catch{rejected=true;}
-  assert.equal(rejected,true,"Unsigned history request accepted");
+  assert.equal(rejected,true,"Unverified history proof accepted");
+  const completedRead=captured.find(value=>
+    value.action==="read" && value.challenge && value.proof
+  );
+  assert.ok(completedRead,"Authenticated read was not captured.");
+  rejected=false;
+  try {await post("read",completedRead);} catch {rejected=true;}
+  assert.equal(rejected,true,"Consumed signed read challenge was replayed");
+  rejected=false;
+  try {await post("register",registration);} catch {rejected=true;}
+  assert.equal(rejected,true,"Consumed signed registration challenge was replayed");
   rejected=false;
   try {
     await post("register",{
