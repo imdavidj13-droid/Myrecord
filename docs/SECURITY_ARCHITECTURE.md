@@ -335,6 +335,16 @@ Test-only files: `docs/D1_REGISTRATION_PROTOTYPE.sql`, `src/security/d1-registra
 - This **does not** mean signed Worker HTTP integration tests have been verified green. GitHub's commit-associated workflow/status interfaces did not return a result for the latest push. The first actual green CI run remains a required verification milestone.
 - No real storage endpoints, real-user data collection, production D1 schema changes or authenticated user sessions have been activated.
 
+## Phase 29 — P2 integration contract and P3 controlled export/deletion (2026-11-14)
+
+- Added `src/vault-workspace.ts`, a presentation-level, dependency-injected controller that connects `read`, `appendSyntheticText`, `export`, and optional `requestDeletionForTests` methods from an already authenticated vault session to explicit `loading`, `ready`, `saving`, `exporting`, `deleting`, `error`, and `closed` UI states. It serializes operations, preserves previously verified history on write failures, rejects invalid history metadata, and prevents late responses from restoring a closed session.
+- Updated the real `App.tsx` writer and `VaultDashboard.tsx` to accept an optional injected controller. With a test controller the writer offers a fictional-only save action and the dashboard shows verified fictional revisions, refresh, errors and close; with **no controller injected** (the actual public `src/main.tsx` path), saving remains disabled and the real vault stays empty. The test-only transport is **not imported** by the public app.
+- Added isolated tests for serialized writes, errors, closing during an outstanding operation, history rendering and the absence of public stored records.
+- Added `src/security/verified-export.ts` for explicit fictional-only JSON packaging after authenticated history verification. The export contains **readable plaintext**, is never sent over the transport or automatically persisted, and explicitly disclaims forensic certification. The optional real export page controls prepare the export, then require a separate download click.
+- Extended `BrowserVaultSessionForTests`, `d1-v2-transport.ts` and the isolated Worker fixture with a signed `deletion_pending` transition using existing `d1-deletion.ts`. The controlled UI requires an exact typed confirmation, closes the session on success, and distinguishes **deletion pending** from erasure. Added corresponding HTTP test checks that post-deletion reads and repeated deletion requests are rejected.
+- **P2 is only integrated in an injected synthetic test environment.** This is not a production writing service, and `src/main.tsx` does not supply a vault session or client transport. Its user-facing save and export controls are unavailable without injection. P3's retained ciphertext, backups, legal holds, audit receipts, disaster recovery, independent anchors, and physical erasure remain **unimplemented**.
+- Changes require a confirmed green GitHub Actions run before being marked verified. No production D1 write, live Worker API, actual personal-record storage, or external delivery was enabled.
+
 ## Threat model (initial)
 
 Protect against:
