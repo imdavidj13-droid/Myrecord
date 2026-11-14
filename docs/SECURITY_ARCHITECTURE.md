@@ -345,6 +345,16 @@ Test-only files: `docs/D1_REGISTRATION_PROTOTYPE.sql`, `src/security/d1-registra
 - **P2 is only integrated in an injected synthetic test environment.** This is not a production writing service, and `src/main.tsx` does not supply a vault session or client transport. Its user-facing save and export controls are unavailable without injection. P3's retained ciphertext, backups, legal holds, audit receipts, disaster recovery, independent anchors, and physical erasure remain **unimplemented**.
 - Changes require a confirmed green GitHub Actions run before being marked verified. No production D1 write, live Worker API, actual personal-record storage, or external delivery was enabled.
 
+## Phase 30 — controlled recovery screen and transient lifecycle hardening
+
+- Added `src/VaultRecoveryTestControls.tsx`, a fictional-only recovery form that is **only mounted when an explicit test recovery adapter and workspace controller are injected into the real `/return` screen**. The normal public website still has neither and does not accept recovery words.
+- The form checks the twelve-word BIP39 checksum locally, normalizes fictional test input, avoids displaying secrets in failure messages, clears the React field before attempting asynchronous recovery, blocks repeated submissions, and closes a recovered key session if its component unmounts before it can open the workspace.
+- `src/vault-workspace.ts` now guards against a stale failed unlock closing a newer unlocked session. App-level page-exit handling clears the injected controller and transient editor/recovery state. The underlying prototype key references still remain subject to JavaScript garbage collection; this is **not** memory-zeroization.
+- `src/VaultRecordControls.tsx` invalidates prepared fictional readable exports when revisions, head digests or session-closure state change. It also rechecks readiness and the verified head before download. This does not prevent browser or operating-system copies after a deliberate download.
+- New regression tests cover public recovery remaining disabled, explicitly injected fictional recovery rendering, delayed old-session rejection after new-session unlock, and in-flight export rejection after session closure.
+- No production recovery API, public storage activation or sensitive data entry is authorized. A usable browser-based test still requires a separately controlled local harness that explicitly injects a fictional adapter; test-only components alone are not a public service.
+- Green CI must be confirmed for the final commit. Separate review remains required for cryptography, evidence retention, erasure, safeguarding, and operational security.
+
 ## Threat model (initial)
 
 Protect against:
