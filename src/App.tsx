@@ -32,7 +32,7 @@ const subscribeUnavailable=()=>()=>{};
 const getUnavailable=()=>unavailableWorkspace;
 export default function App({workspace}:{workspace?:VaultWorkspaceController}={}){
   const [screen,setScreen]=useState<Screen>(()=>screenFromPath(window.location.pathname));
-  const vault=useSyncExternalStore(workspace?.subscribe ?? subscribeUnavailable,workspace?.getSnapshot ?? getUnavailable);
+  const vault=useSyncExternalStore(workspace?.subscribe ?? subscribeUnavailable,workspace?.getSnapshot ?? getUnavailable,workspace?.getSnapshot ?? getUnavailable);
   const sessionReady=Boolean(workspace && vault.phase==="ready");
   const sessionBusy=Boolean(workspace && ["loading","saving","exporting","deleting"].includes(vault.phase));
   const [writerError,setWriterError]=useState<string|null>(null);
