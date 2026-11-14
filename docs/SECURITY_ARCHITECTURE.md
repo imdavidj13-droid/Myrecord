@@ -125,6 +125,16 @@ Code: `src/security/recovery-bootstrap.ts`, `src/security/recovery-bootstrap.tes
 
 **Storage gap:** In-memory Maps and public backup lookup are test-only. The real implementation must avoid timing/enumeration leaks, perform atomic request authorization and mutations, secure backups against rollback, provide durable data consistency, design safe deletion and disaster recovery, and undergo independent security and UK privacy review.
 
+## Phase 8 — registration intent binding (isolated)
+
+Code: `src/security/registration-intent.ts`, `src/security/registration-intent.test.ts`, plus updated `synthetic-vault-store.ts` and regression tests.
+
+The initial signature proved possession of a signing key but did not cover the recovery lookup identifier or key backups. This version requires a **second P-256 signature** over domain-separated, fixed-order registration fields: vault ID, challenge nonce/action/expiry, lookup identifier, encrypted data-key envelope, encrypted signing-key envelope, and public-key coordinates. The prototype verifier requires that intent signature **as well as** the existing one-time challenge proof before registering a vault.
+
+Tests cover legitimate enrollment and failure when an attacker substitutes the lookup identifier, either encrypted envelope, or the signing key; previously successful challenges cannot be replayed.
+
+**Remaining security gap:** Even if the registration signature covers a supplied lookup ID, it does **not** prove the ID was derived from the exact recovery phrase that decrypts the encrypted key backups. A malicious or buggy client could create an unrecoverable vault. Production must design a suitable proof of consistency or safe local confirmation with recovery and registration validation, without disclosing the phrase or providing password-guessing oracles. The proof also does not atomically bind subsequent append bodies to signatures. Concurrent registration and storage are not safe with Maps. A formal protocol audit and transaction design remain required.
+
 ## Threat model (initial)
 
 Protect against:
