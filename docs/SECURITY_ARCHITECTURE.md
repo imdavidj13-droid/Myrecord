@@ -135,6 +135,22 @@ Tests cover legitimate enrollment and failure when an attacker substitutes the l
 
 **Remaining security gap:** Even if the registration signature covers a supplied lookup ID, it does **not** prove the ID was derived from the exact recovery phrase that decrypts the encrypted key backups. A malicious or buggy client could create an unrecoverable vault. Production must design a suitable proof of consistency or safe local confirmation with recovery and registration validation, without disclosing the phrase or providing password-guessing oracles. The proof also does not atomically bind subsequent append bodies to signatures. Concurrent registration and storage are not safe with Maps. A formal protocol audit and transaction design remain required.
 
+## Phase 9 — client-side recovery-consistency gate (isolated)
+
+Code: `src/security/recovery-consistency.ts`, `src/security/recovery-consistency.test.ts`, `src/security/prepare-registration.ts`, and `src/security/prepare-registration.test.ts`.
+
+The experimental browser-side registration preparation now **fails closed** unless the entered 12-word phrase:
+
+1. Deterministically derives the exact supplied recovery lookup identifier.
+2. Successfully unwraps the encrypted data key and produces a non-extractable decryption key.
+3. Unwraps the signing key and verifies that it matches the public verification key supplied for registration.
+4. Matches the vault identifier in both encrypted envelopes.
+5. Passes a local signing/verification challenge before signing the registration proof and registration intent.
+
+The helper returns only the signed registration payload and encrypted/public metadata. It does **not** return recovery words or unwrapped keys. All crypto operations are in memory, and no external API or database is contacted.
+
+**Security boundary:** This is an honest-client check, not a cryptographic proof to the server that the recovery phrase matches the lookup ID. A malicious or modified client can skip it and register irrecoverable or deliberately inconsistent data. A real protocol still needs recovery-confirmation UX, server acceptance criteria, secure frontend distribution, transactionally consistent registration and independent cryptographic review. The current test-only data encryption also does not authenticate vault/revision metadata, so evidence integrity remains incomplete.
+
 ## Threat model (initial)
 
 Protect against:
