@@ -83,6 +83,23 @@ async function digestOf(challenge: ProofChallengeV1, envelope: IntegrityEnvelope
   )));
 }
 
+/**
+ * Enroll a separate v2 history head for a pre-registered synthetic vault.
+ * Does not create or mutate the vault's signing key or recovery backup.
+ * Production must combine head enrollment atomically with vault registration.
+ */
+export async function initializeIntegrityHeadD1ForTests(
+  db:PrototypeD1Database,vaultId:string
+):Promise<void> {
+  if(!idPattern.test(vaultId))throw new Error("Invalid vault ID.");
+  const result=await db.prepare(`
+    INSERT INTO sandbox_integrity_heads_v2(vault_id)
+    SELECT vault_id FROM sandbox_vaults
+    WHERE vault_id=? AND status='active'
+  `).bind(vaultId).run() as {meta?:{changes?:number}};
+  if(result?.meta?.changes!==1)throw new Error("Integrity head enrollment failed.");
+}
+
 export async function signIntegrityAppendForTests(
   key: CryptoKey, challenge: ProofChallengeV1,
   envelope: IntegrityEnvelopeV2
