@@ -36,6 +36,19 @@ function buffer(bytes: Uint8Array): ArrayBuffer {
 function toBase64(bytes: Uint8Array): string {
   return btoa(String.fromCharCode(...bytes));
 }
+function toBase64Url(bytes: Uint8Array): string {
+  return toBase64(bytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function fromBase64Url(value: unknown, expectedLength: number): Uint8Array {
+  if (typeof value !== "string" || !/^[A-Za-z0-9_-]+$/.test(value)) {
+    throw new Error("Invalid vault identifier.");
+  }
+  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64 + "=".repeat((4 - base64.length % 4) % 4);
+  const bytes = fromBase64(padded, expectedLength);
+  if (toBase64Url(bytes) !== value) throw new Error("Invalid vault identifier.");
+  return bytes;
+}
 function fromBase64(value: unknown, expectedLength: number): Uint8Array {
   if (typeof value !== "string" || value.length > MAX_B64 ||
       !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value)) {
@@ -96,7 +109,7 @@ export async function createWrappedVaultKeyForTests(
     return {
       envelope: {
         version: 1, algorithm: "HKDF-SHA-256+A256GCM",
-        vaultId: toBase64(vaultId), salt: toBase64(salt),
+        vaultId: toBase64Url(vaultId), salt: toBase64(salt),
         iv: toBase64(iv), wrappedKey: toBase64(new Uint8Array(ciphertext))
       },
       key
@@ -116,7 +129,7 @@ export async function unwrapVaultKeyForTests(
   if (candidate.version !== 1 || candidate.algorithm !== "HKDF-SHA-256+A256GCM") {
     throw new Error("Unsupported key envelope.");
   }
-  const vaultId = fromBase64(candidate.vaultId, ID_LENGTH);
+  const vaultId = fromBase64Url(candidate.vaultId, ID_LENGTH);
   const salt = fromBase64(candidate.salt, SALT_LENGTH);
   const iv = fromBase64(candidate.iv, IV_LENGTH);
   const wrappedKey = fromBase64(candidate.wrappedKey, KEY_LENGTH + 16);
