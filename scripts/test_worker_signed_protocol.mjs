@@ -103,11 +103,7 @@ async function run() {
   if(!ready)throw new Error("Local protocol Worker failed to start: "+stderr);
 
   const { BrowserVaultSessionForTests }=await import(pathToFileURL(bundle).href);
-  const {generateRecoveryWords}=await import(
-    pathToFileURL(resolve(root,"node_modules","@scure","bip39","index.js")).href
-  ).catch(()=>({generateRecoveryWords:null}));
-  // Use independent CSPRNG phrase generation from the same production library
-  // through the browser module when the package entry point is not stable.
+  // Recovery module is bundled separately so both sides use real test crypto.
   const phraseBundle=join(temp,"recovery.mjs");
   command(resolve(root,"node_modules",".bin","esbuild"),[
     "src/security/recovery.ts","--bundle","--platform=node","--format=esm",
@@ -117,7 +113,6 @@ async function run() {
   const phrase=recovery.generateRecoveryWords();
   assert.equal(typeof phrase,"string");
   assert.equal(phrase.split(" ").length,12);
-  void generateRecoveryWords; // optional module import not needed for protocol
   const transport=remoteTransport();
   const session=await BrowserVaultSessionForTests.register(transport,phrase);
   const first=await session.appendSyntheticText("FICTIONAL WRITTEN ENTRY ONE");
