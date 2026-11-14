@@ -327,6 +327,14 @@ Test-only files: `docs/D1_REGISTRATION_PROTOTYPE.sql`, `src/security/d1-registra
 - CI executes the local test and cleans up temporary state. **Do not claim this test passed until the GitHub Actions run is verified.**
 - These local endpoints are intentionally NOT reachable on the deployed MySafeSpace site. Do not enable them in production or bind the Worker to `mysafespace-db`. Independent audit, DPIA, safeguarding and a production migration/incident response plan are still mandatory before any real testimony is accepted.
 
+## Phase 28 — strict test boundary guard and signed-protocol CI readiness
+
+- The local-only signed protocol Worker now uses explicit parameter-bound TypeScript casts for validated request objects to avoid strict TypeScript structural-cast diagnostics.
+- Added `scripts/check_test_isolation.mjs` to verify the normal deploy configuration has no test Worker entrypoint, all three test Wrangler configurations use a **fictional** D1 UUID, and the public React entrypoints do not import test-only vault transports or Worker handlers.
+- GitHub Actions runs the isolation check before cryptography and D1 tests; the check also rejects executable Wrangler `--remote` argument literals in the local integration scripts.
+- This **does not** mean signed Worker HTTP integration tests have been verified green. GitHub's commit-associated workflow/status interfaces did not return a result for the latest push. The first actual green CI run remains a required verification milestone.
+- No real storage endpoints, real-user data collection, production D1 schema changes or authenticated user sessions have been activated.
+
 ## Threat model (initial)
 
 Protect against:
