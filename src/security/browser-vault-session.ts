@@ -18,6 +18,7 @@ import { encryptIntegrityEntryForTests, decryptIntegrityEntryForTests,
   type IntegrityEnvelopeV2 } from "./integrity-chain";
 import { signIntegrityAppendForTests } from "./d1-v2-integrity";
 import { signD1ReadRequestForTests, type SignedReadRequestV1 } from "./d1-read-export";
+import { signDeletionIntentForTests, type DeleteIntentV1 } from "./d1-deletion";
 import type { ProofChallengeV1, SignedProofV1 } from "./access-proof";
 import type { SignedRegistrationIntentV1 } from "./registration-intent";
 import type { SyntheticVaultBackup } from "./synthetic-vault-store";
@@ -46,6 +47,8 @@ export interface VaultTransportForTests {
     proof: SignedReadRequestV1;
   }>): Promise<EncryptedHistoryForTests>;
   issueAppendChallenge(envelope: IntegrityEnvelopeV2): Promise<ProofChallengeV1>;
+  issueDeletionChallenge?(vaultId:string):Promise<ProofChallengeV1>;
+  markDeletionPending?(challenge:ProofChallengeV1,intent:DeleteIntentV1):Promise<void>;
   append(input: Readonly<{
     envelope: IntegrityEnvelopeV2;
     challenge: ProofChallengeV1;
@@ -76,6 +79,7 @@ export class BrowserVaultSessionForTests {
   // guards against rollback or substitution during the same browser session.
   // Cross-device and cross-session anchoring still require a separate trust
   // mechanism that a backend operator cannot rewrite.
+  private closed = false;
   private observedRevision = 0;
   private observedHead = GENESIS_DIGEST_FOR_TESTS;
   // Keys are intentionally non-extractable WebCrypto objects. A page reload
@@ -132,6 +136,12 @@ export class BrowserVaultSessionForTests {
     return session;
   }
 
+  private assertOpen():void {
+    if(this.closed)throw new Error("Vault session is closed.");
+  }
+
+  close():void {this.closed=true;}
+
   async read(previouslyTrustedHead?: string): Promise<RecoveredHistoryForTests> {
     return this.retrieve("read", previouslyTrustedHead);
   }
@@ -143,6 +153,7 @@ export class BrowserVaultSessionForTests {
   private async retrieve(
     action: "read" | "export", previouslyTrustedHead?: string
   ): Promise<RecoveredHistoryForTests> {
+    this.assertOpen();
     const challenge = await this.transport.issueReadChallenge(this.vaultId, action);
     if (challenge.action !== action || challenge.vaultId !== this.vaultId) {
       throw new Error("Untrusted read challenge.");
@@ -189,6 +200,7 @@ export class BrowserVaultSessionForTests {
   }
 
   async appendSyntheticText(text: string): Promise<RecoveredHistoryForTests> {
+    this.assertOpen();
     if (typeof text !== "string" || !text.trim()) throw new Error("Empty entry.");
     const current = await this.read();
     const envelope = await encryptIntegrityEntryForTests(
@@ -212,4 +224,22 @@ export class BrowserVaultSessionForTests {
     }
     return updated;
   }
+  /**
+   * Authenticated, irreversible *status transition* in the test D1 only.
+   * This is NOT erasure, a retention claim or a production deletion feature.
+   */
+  async requestDeletionForTests():Promise<void> {
+    this.assertOpen();
+    const issue=this.transport.issueDeletionChallenge;
+    const mark=this.transport.markDeletionPending;
+    if(!issue || !mark)throw new Error("Deletion transport is unavailable.");
+    const challenge=await issue(this.vaultId);
+    if(challenge.action!=="delete" || challenge.vaultId!==this.vaultId) {
+      throw new Error("Incorrect deletion challenge.");
+    }
+    const intent=await signDeletionIntentForTests(this.signingKey,challenge);
+    await mark(challenge,intent);
+    this.close();
+  }
+
 }
