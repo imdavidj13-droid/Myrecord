@@ -101,13 +101,8 @@ export async function issueIntegrityAppendChallengeD1ForTests(
   envelope: IntegrityEnvelopeV2,now:number
 ):Promise<ProofChallengeV1> {
   if (!Number.isSafeInteger(now)) throw new Error("Invalid challenge issue time.");
-  // Validate whole envelope and recompute its SHA256 digest before issuing.
-  await verifyIntegrityChainForTests(
-    envelope.revision === 1 ? [envelope] : []
-  ).catch(error => {
-    if (envelope.revision === 1) throw error;
-  });
-  validateEnvelope(envelope);
+  // Recompute the versioned envelope digest before issuing any challenge.
+  await verifyStandaloneIntegrityDigest(envelope);
   const challenge=issueChallengeForTests(envelope.vaultId,"append",now);
   const digest=await digestOf(challenge,envelope);
   const result=await db.prepare(`
@@ -131,9 +126,7 @@ export async function appendIntegrityEntryD1ForTests(
      now>=challenge.expiresAt||proof?.version!==2) {
     throw new Error("Expired or invalid v2 append authorization.");
   }
-  // Verify full envelope hash independently of the signature. This helper
-  // accepts a single non-genesis entry only with a separately known parent,
-  // so recompute the envelope digest via a targeted digest checker below.
+  // Independently recompute the envelope digest, then verify the signed request.
   await verifyStandaloneIntegrityDigest(envelope);
   const row=await db.prepare(
     "SELECT verification_jwk FROM sandbox_vaults WHERE vault_id=? AND status='active'"
