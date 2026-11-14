@@ -300,6 +300,15 @@ Test-only files: `docs/D1_REGISTRATION_PROTOTYPE.sql`, `src/security/d1-registra
 - Registration challenges, v2 ciphertext appends and signed reads are delegated to the pre-existing test-only adapters. The new tests for lookup are **not** a deployed Worker/D1 end-to-end test; the local Wrangler SQL fixture and synthetic browser tests remain separate.
 - The transport is **not imported into the public application**, and must never be attached to real user input or a live D1 binding without independent protocol/security and privacy reviews, full remote concurrency/atomicity testing, abuse controls, and deployment readiness work.
 
+## Phase 25 — real AES-GCM ciphertext through isolated Wrangler local D1
+
+- Added `scripts/test_d1_local_crypto.mjs` and a CI step invoking it. Each run creates a fresh temporary local D1 persistence directory using `wrangler.d1-test.jsonc`, applies the three **sandbox-only** schemas, and removes the temporary state afterwards. Commands use `--local` exclusively, never `--remote`.
+- Generates an ephemeral non-extractable 256-bit AES-GCM key and two distinct authenticated v2 envelopes containing explicitly fictional text. Each envelope includes fresh 12-byte IV, authenticated associated data containing vault ID, entry ID, revision and previous digest, and the same SHA-256 digest layout as the prototype `integrity-chain.ts`. The generated SQL fixture contains ciphertext, not those fictional plaintext strings.
+- Performs actual Wrangler local D1 SQL registration-challenge consumption, vault/head creation, linked v2 ciphertext inserts, and lookup. Retrieves both stored envelope JSON records and the head via `wrangler d1 execute --local --json`; independently recalculates digests, checks revision/head continuity and locally decrypts both entries to recover exactly the fictional test strings.
+- Confirms D1 rejects duplicate nonce consumption, record modification/deletion, replay of the consumed registration challenge, and an insert whose previous digest does not match the current head; confirms the head remains unchanged after rejected attempts.
+- **Scope limitation:** This is a real local-D1 ciphertext storage round trip, but it does *not* exercise an HTTP Worker endpoint, signed request verification, secure session establishment, cross-device persistence, legitimate retention/deletion, or independent operator-proof time anchoring. It creates synthetic registration metadata without real signing proofs, so it does not demonstrate server-side authorization. Earlier independent TypeScript tests exercise those algorithms.
+- The new CI run must pass before reporting this milestone as verified. No production D1 binding or API route was touched.
+
 ## Threat model (initial)
 
 Protect against:
