@@ -107,6 +107,48 @@ assert_failure("re-register lookup ID", lambda: connection.execute(
     ("anotherSyntheticVault123", lookup, "{}", "{}")
 ))
 
+# The signed deletion procedure is represented by a single atomic transaction:
+# consume a distinct valid deletion nonce and mark the vault pending deletion.
+connection.execute(
+    """INSERT INTO sandbox_challenges(nonce,vault_id,action,issued_ms,expires_ms,request_digest)
+    VALUES (?, ?, 'delete', 1000, 61000, ?)""",
+    (nonce3 + "-delete", vault, "delete-digest"),
+)
+connection.commit()
+
+with connection:
+    connection.execute(
+        """INSERT INTO sandbox_consumed_nonces(nonce, consumed_ms)
+        VALUES ((SELECT nonce FROM sandbox_challenges
+          WHERE nonce=? AND vault_id=? AND action='delete'
+          AND request_digest=? AND issued_ms<=2000 AND expires_ms>2000),2000)""",
+        (nonce3 + "-delete", vault, "delete-digest"),
+    )
+    changed = connection.execute(
+        "UPDATE sandbox_vaults SET status='deletion_pending' "
+        "WHERE vault_id=? AND status='active' RETURNING vault_id", (vault,)
+    ).fetchall()
+    assert changed == [(vault,)]
+
+assert_failure("append after pending deletion", lambda: connection.execute(
+    """INSERT INTO sandbox_entries
+    (entry_id,vault_id,revision,encrypted_envelope_json,server_received_ms)
+    VALUES (?, ?, ?, ?, ?)""", ("fictional-entry-3", vault, 3, "{}", 2001)
+))
+connection.execute(
+    """INSERT INTO sandbox_challenges(nonce,vault_id,action,issued_ms,expires_ms,request_digest)
+    VALUES (?, ?, 'delete', 1000, 61000, ?)""",
+    ("E" * 43, vault, "another-delete"),
+)
+connection.commit()
+assert_failure("consume deletion nonce on non-active vault", lambda: connection.execute(
+    """INSERT INTO sandbox_consumed_nonces(nonce,consumed_ms)
+    VALUES (?, 2001)""", ("E" * 43,)
+))
+assert connection.execute(
+    "SELECT status FROM sandbox_vaults WHERE vault_id=?", (vault,)
+).fetchone()[0] == "deletion_pending"
+
 count = connection.execute("SELECT COUNT(*) FROM sandbox_entries").fetchone()[0]
 assert count == 2
 print("D1 draft schema SQLite checks passed: replay, rollback, sequential append, immutability.")
