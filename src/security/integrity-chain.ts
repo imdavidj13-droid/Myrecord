@@ -47,7 +47,7 @@ function decode64(value: unknown, maximum: number): Uint8Array {
   }
   const decoded = atob(value);
   if (decoded.length > maximum) throw new Error("Invalid encrypted evidence length.");
-  return Uint8Array.from(decoded, char => char.charCodeAt(0));
+  return Uint8Array.from(Array.from(decoded, char => char.charCodeAt(0)));
 }
 
 function metadata(vaultId: string, entryId: string, revision: number, previousDigest: string): ArrayBuffer {
