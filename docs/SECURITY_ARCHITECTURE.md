@@ -190,6 +190,19 @@ Files: `docs/D1_TRANSACTIONAL_PROTOTYPE.sql`, `src/security/d1-transaction.ts`, 
 - GitHub's accessible commit status results have not provided usable push-run check details; **do not infer CI passing** from a commit being accepted.
 - A local Wrangler smoke test is not evidence of cloud-edge concurrency correctness, independently verifiable evidence integrity or production authorization safety.
 
+## Phase 14 — authenticated D1 ciphertext read/export prototype
+
+Code: `src/security/d1-read-export.ts` and `src/security/d1-read-export.test.ts`.
+
+- A read or export challenge is scoped to a registered vault, action, and requested starting revision, with a request-specific SHA-256 digest persisted in D1.
+- The client signs a canonical, domain-separated request. The test-only server adapter loads the registered public JWK from D1 and validates the signature, rather than trusting a key supplied by the requester.
+- A D1 batch claims the one-time challenge nonce and selects **ciphertext only**. A replayed, absent, altered or expired nonce fails before returning records.
+- Full ciphertext exports are separately authorized, must begin at revision zero, and fail closed on missing or discontinuous revisions rather than silently returning a partial export.
+- Automated synthetic tests cover wrong keys, altered actions/revisions, expired challenges, simulated replay errors, and incomplete exports.
+- The live Worker remains **unconnected** to this module. No real Cloudflare D1 migration or requests have been performed.
+
+**Limitations:** The vault metadata read (including latest revision and encrypted backup) occurs before the D1 batch, so a concurrently appended record can make an export fail closed. This does not establish a durable snapshot or anti-rollback guarantee. Ciphertext row metadata is not yet included in AES-GCM authenticated data; a malicious server could still suppress or substitute entries. This is deliberately limited to non-deployed synthetic tests; do not enable real evidence storage until independent security review, compliance assessment, and the remaining authorization protocols are complete.
+
 ## Threat model (initial)
 
 Protect against:
