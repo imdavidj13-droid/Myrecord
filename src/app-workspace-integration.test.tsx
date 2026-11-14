@@ -1,9 +1,25 @@
+import ExistingSiteTestApp from "./ExistingSiteTestApp";
 import {describe,expect,it,vi} from "vitest";
 import {createElement} from "react";
 import {renderToStaticMarkup} from "react-dom/server";
 import App from "./App";
 import {VaultWorkspaceController, type WorkspaceSession} from "./vault-workspace";
 
+describe("Existing-site layout shell",()=>{
+  it("renders one root wrapper with a compact test toolbar and the site as siblings",()=>{
+    vi.stubGlobal("window",{location:{pathname:"/write"}});
+    try{
+      const markup=renderToStaticMarkup(createElement(ExistingSiteTestApp));
+      expect(markup).toContain('class="existing-site-test-shell"');
+      expect(markup).toContain('class="existing-site-test-controls"');
+      expect(markup).toContain('class="site screen-write');
+      const toolbar=markup.indexOf('class="existing-site-test-controls"');
+      const site=markup.indexOf('class="site screen-write');
+      expect(toolbar).toBeGreaterThan(-1);
+      expect(site).toBeGreaterThan(toolbar);
+    }finally{vi.unstubAllGlobals();}
+  });
+});
 describe("P2 actual App route wiring — no public storage session",()=>{
   it("keeps the public writer unsaved and never advertises active saving",()=>{
     vi.stubGlobal("window",{location:{pathname:"/write"}});
