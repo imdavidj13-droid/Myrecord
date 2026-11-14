@@ -182,6 +182,14 @@ Files: `docs/D1_TRANSACTIONAL_PROTOTYPE.sql`, `src/security/d1-transaction.ts`, 
 
 **Production blocker:** All sensitive operations still require a completed, audited access protocol, robust D1 read/export/delete and registration transaction logic, abuse controls, privacy engineering, client-side AEAD metadata binding, and a formal security review. Enabling external access now would be unsafe.
 
+## Phase 13 — Wrangler local D1 smoke-fixture validation
+
+- Added `scripts/d1_local_smoke_fixture.sql` with fictional IDs and fabricated ciphertext data only.
+- GitHub Actions invokes Wrangler `d1 execute --local` to install the draft schema, insert the synthetic fixture and check the persisted entry, updated revision counter and duplicate-nonce rejection.
+- These exercises are local Wrangler checks; they **do not** write to the user's `mysafespace-db` production binding and do not expose storage endpoints.
+- GitHub's accessible commit status results have not provided usable push-run check details; **do not infer CI passing** from a commit being accepted.
+- A local Wrangler smoke test is not evidence of cloud-edge concurrency correctness, independently verifiable evidence integrity or production authorization safety.
+
 ## Threat model (initial)
 
 Protect against:
