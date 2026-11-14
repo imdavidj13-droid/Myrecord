@@ -19,7 +19,19 @@ describe("Existing-site fictional encrypted vault: no database or persistence",(
     expect(workspace.getSnapshot().entries).toHaveLength(0);
     await expect(session.read()).rejects.toThrow("closed");
   });
-  it("does not offer recovery or deletion against nonpersistent fictional storage",async()=>{
+  it("erases a fictional tab vault and its display history without involving a database",async()=>{
+    const session=await EphemeralFictionalVault.create();
+    const workspace=new VaultWorkspaceController();
+    await workspace.unlock(session);
+    await workspace.saveFictionalText("FICTIONAL ENTRY TO ERASE");
+    expect(workspace.getSnapshot().revision).toBe(1);
+    await workspace.eraseEphemeralVault();
+    expect(workspace.getSnapshot().phase).toBe("closed");
+    expect(workspace.getSnapshot().revision).toBe(0);
+    expect(workspace.getSnapshot().entries).toHaveLength(0);
+    await expect(session.read()).rejects.toThrow("closed");
+  });
+  it("does not offer signed D1 deletion against nonpersistent fictional storage",async()=>{
     const session=await EphemeralFictionalVault.create();
     const workspace=new VaultWorkspaceController();
     await workspace.unlock(session);
