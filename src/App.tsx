@@ -1,3 +1,4 @@
+import SupportPage from "./SupportPage";
 import VaultRecoveryTestControls from "./VaultRecoveryTestControls";
 import type {WorkspaceSession} from "./vault-workspace";
 import VaultRecordControls from "./VaultRecordControls";
@@ -8,12 +9,12 @@ import RecoveryOnboarding from "./RecoveryOnboarding";
 import { useEffect, useState } from "react";
 import { ArrowRight, CheckCircle2, FileText, Info, Scale, UserRoundX, UsersRound, BookOpen, ChevronDown, Download, EyeOff, Feather, Focus, Heart, KeyRound, LockKeyhole, Menu, PenLine, ShieldCheck, ShieldAlert, Sparkles, Trash2, X } from "lucide-react";
 
-type Screen = "home" | "before" | "recovery" | "confirm" | "write" | "vault" | "return" | "export";
+type Screen = "home" | "before" | "recovery" | "confirm" | "write" | "vault" | "return" | "export" | "support";
 type Mode = "free" | "journal" | "guided" | "focus";
 const routes: Record<Screen, string> = {
   home: "/", before: "/before-you-begin", recovery: "/recovery-words",
   confirm: "/confirm-recovery", write: "/write", vault: "/vault",
-  return: "/return", export: "/export"
+  return: "/return", export: "/export", support:"/support"
 };
 const screenFromPath = (path: string): Screen => {
   const normalized = path.replace(/\/+$/, "") || "/";
@@ -103,6 +104,7 @@ export default function App({workspace,recoverFictional,onStartTest,onEndTest,te
         <button onClick={()=>go("write")}>Writing space</button>
         <button onClick={()=>go("vault")}>My vault</button>
         <button onClick={()=>go("export")}>Export</button>
+        <button onClick={()=>go("support")}>Support</button>
       </nav>
       <div className="header-actions">{onStartTest&&<div className="header-test-controls">{sessionReady?<span className="header-test-status">{vault.revision} fictional {vault.revision===1?"entry":"entries"}</span>:null}<button type="button" className="header-test-button" disabled={testBusy||sessionBusy} onClick={sessionReady?onEndTest:onStartTest}>{sessionReady?"End test":"Start test"}</button></div>}<button className="quiet" onClick={quit}><EyeOff size={16}/> Quick exit</button><button className="menu-button" aria-label="Toggle menu" onClick={()=>setMobileMenu(!mobileMenu)}>{mobileMenu?<X/>:<Menu/>}</button></div>
     </header>
@@ -211,6 +213,7 @@ export default function App({workspace,recoverFictional,onStartTest,onEndTest,te
   </div>
   <aside className="experience-scene" aria-hidden="true"><div className="scene-light"/><Botanical className="experience-botanical"/><div className="scene-journal"><div className="scene-journal-ribbon"/><div className="scene-journal-lines"/></div><div className="scene-cup"/><div className="scene-note"><span className="quote-mark">“</span><p>Come back when the time is right for you.</p></div></aside>
 </section>}
+    {screen==="support"&&<SupportPage onExit={quit}/>}
     {screen==="export"&&<section className="experience-page">
   <div className="experience-main">
     <div className="experience-intro"><span className="eyebrow">IN YOUR HANDS <span className="eyebrow-line"/></span><h1>Decide what happens<br/><em>to your record.</em></h1><p className="lead">The finished service will let you prepare a complete readable account, or request deletion. Nothing is shared with the police automatically.</p></div>
