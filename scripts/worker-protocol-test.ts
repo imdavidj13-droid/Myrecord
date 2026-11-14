@@ -59,7 +59,7 @@ export default {
     const route = url.pathname.slice(prefix.length);
     const supported = [
       "register-challenge","register","lookup","read-challenge","read",
-      "append-challenge","append"
+      "append-challenge","append","deletion-challenge","mark-deletion-pending"
     ];
     if (!supported.includes(route)) return response({error:"not_found"},404);
     let payload: Record<string,unknown>;
@@ -102,6 +102,22 @@ export default {
         case "append": {
           requireKeys(payload,["envelope","challenge","proof"]);
           await transport.append(payload as unknown as Parameters<typeof transport.append>[0]);
+          return response({ok:true});
+        }
+        case "deletion-challenge": {
+          requireKeys(payload,["vaultId"]);
+          const issue=transport.issueDeletionChallenge;
+          if(!issue)throw new Error("Unavailable.");
+          return response(await issue(payload.vaultId as string));
+        }
+        case "mark-deletion-pending": {
+          requireKeys(payload,["challenge","intent"]);
+          const mark=transport.markDeletionPending;
+          if(!mark)throw new Error("Unavailable.");
+          await mark(
+            payload.challenge as Parameters<typeof mark>[0],
+            payload.intent as Parameters<typeof mark>[1]
+          );
           return response({ok:true});
         }
       }
