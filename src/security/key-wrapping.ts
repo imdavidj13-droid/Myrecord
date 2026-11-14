@@ -43,7 +43,9 @@ function fromBase64(value: unknown, expectedLength: number): Uint8Array {
   }
   const decoded = atob(value);
   if (decoded.length !== expectedLength) throw new Error("Malformed wrapped key.");
-  return Uint8Array.from(decoded, character => character.charCodeAt(0));
+  const bytes = new Uint8Array(decoded.length);
+  for (let i = 0; i < decoded.length; i++) bytes[i] = decoded.charCodeAt(i);
+  return bytes;
 }
 
 async function deriveWrappingKey(phrase: string, salt: Uint8Array, vaultId: Uint8Array): Promise<CryptoKey> {
