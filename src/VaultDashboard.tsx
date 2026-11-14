@@ -24,7 +24,7 @@ export default function VaultDashboard({ locallyConfirmed, workspace, onRefresh,
       <div>
         <span className="eyebrow">MYSAFESPACE / PRIVATE SPACE</span>
         <h1>A place to return<br/><em>whenever you're ready.</em></h1>
-        <p>Your writing, history and export tools will be here once secure vault storage is available.</p>
+        <p>{workspace?.phase==="ready" ? "Your fictional encrypted records are available in this isolated integration session." : "Your writing, history and export tools will be here once secure vault storage is available."}</p>
       </div>
       <div className="vault-dashboard-status"><ShieldAlert size={22}/>
         <div><strong>{workspace && workspace.phase!=="locked" && workspace.phase!=="closed" ? "Isolated test session" : "Storage not available yet"}</strong><span>{workspace && workspace.phase!=="ready" && workspace.phase!=="locked" && workspace.phase!=="closed" ? "Integration session — fictional records only." : "No production account or private vault is active."}</span></div>
@@ -68,8 +68,8 @@ export default function VaultDashboard({ locallyConfirmed, workspace, onRefresh,
         </div>
         <div className="vault-dashboard-info">
           <FileText size={20}/>
-          <div><strong>Nothing has been saved.</strong>
-            <p>There are no sample entries or hidden local records. Your personal information should not be entered until the service is independently reviewed.</p>
+          <div><strong>{workspace?.entries.length ? "Fictional test records only." : "No production records are saved."}</strong>
+            <p>{workspace?.entries.length ? "Records shown here belong to the isolated integration session. The public site still cannot save personal testimony." : "There are no hidden local records. Your personal information should not be entered until the service is independently reviewed."}</p>
           </div>
         </div>
         <button className="vault-dashboard-start" onClick={onStart}>Read how MySafeSpace will work <ArrowRight size={16}/></button>
