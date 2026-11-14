@@ -23,6 +23,8 @@ jobs:
         run: python3 scripts/test_d1_concurrency.py
       - name: Validate v2 D1 integrity constraints with SQLite
         run: python3 scripts/test_d1_v2_integrity.py
+      - name: Validate atomic D1 vault registration with SQLite
+        run: python3 scripts/test_d1_registration.py
       - name: Validate Cloudflare D1 schema with Wrangler local mode
         run: |
           npx --yes wrangler@4.156.2 d1 execute mysafespace-d1-local-test --local --config wrangler.d1-test.jsonc --file docs/D1_TRANSACTIONAL_PROTOTYPE.sql
@@ -30,6 +32,8 @@ jobs:
           npx --yes wrangler@4.156.2 d1 execute mysafespace-d1-local-test --local --config wrangler.d1-test.jsonc --file docs/D1_V2_INTEGRITY_EXTENSION.sql
           npx --yes wrangler@4.156.2 d1 execute mysafespace-d1-local-test --local --config wrangler.d1-test.jsonc --command "SELECT name FROM sqlite_master WHERE type='table' AND name='sandbox_integrity_entries_v2'" | grep -q sandbox_integrity_entries_v2
           npx --yes wrangler@4.156.2 d1 execute mysafespace-d1-local-test --local --config wrangler.d1-test.jsonc --file scripts/d1_local_smoke_fixture.sql
+          npx --yes wrangler@4.156.2 d1 execute mysafespace-d1-local-test --local --config wrangler.d1-test.jsonc --file docs/D1_REGISTRATION_PROTOTYPE.sql
+          npx --yes wrangler@4.156.2 d1 execute mysafespace-d1-local-test --local --config wrangler.d1-test.jsonc --command "SELECT name FROM sqlite_master WHERE type='table' AND name='sandbox_registration_challenges'" | grep -q sandbox_registration_challenges
           npx --yes wrangler@4.156.2 d1 execute mysafespace-d1-local-test --local --config wrangler.d1-test.jsonc --command "SELECT entry_id FROM sandbox_entries WHERE vault_id='fictionalVaultId123456' AND revision=1" | grep -q fictionalEntryId123456
           npx --yes wrangler@4.156.2 d1 execute mysafespace-d1-local-test --local --config wrangler.d1-test.jsonc --command "SELECT vault_id FROM sandbox_vaults WHERE vault_id='fictionalVaultId123456' AND latest_revision=1" | grep -q fictionalVaultId123456
           if npx --yes wrangler@4.156.2 d1 execute mysafespace-d1-local-test --local --config wrangler.d1-test.jsonc --command "INSERT INTO sandbox_consumed_nonces(nonce,consumed_ms) VALUES ('BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',3000)"; then
