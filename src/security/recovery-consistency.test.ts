@@ -4,6 +4,7 @@ import { createWrappedVaultKeyForTests } from "./key-wrapping";
 import { createWrappedSigningCredentialForTests } from "./signing-recovery";
 import { deriveVaultLookupIdForTests } from "./recovery-bootstrap";
 import { verifyLocalRecoveryConsistencyForTests } from "./recovery-consistency";
+import { recoverSigningCredentialForTests } from "./signing-recovery";
 import type { SyntheticVaultBackup } from "./synthetic-vault-store";
 
 async function fixture() {
@@ -25,6 +26,9 @@ async function fixture() {
 describe("local recovery-consistency preflight — synthetic only", () => {
   it("confirms lookup, data key and signing key are recoverable with one phrase", async () => {
     const f = await fixture();
+    const recovered = await recoverSigningCredentialForTests(f.words, f.backup.wrappedSigningKey);
+    expect(recovered.publicKey.extractable).toBe(false);
+    expect(recovered.privateKey.extractable).toBe(false);
     const result = await verifyLocalRecoveryConsistencyForTests(
       f.words, f.lookupId, JSON.parse(JSON.stringify(f.backup)) as SyntheticVaultBackup
     );
