@@ -28,6 +28,7 @@ export interface WorkspaceSession {
   appendSyntheticText(text: string): Promise<WorkspaceHistory>;
   export(): Promise<WorkspaceHistory>;
   requestDeletionForTests?(): Promise<void>;
+  eraseEphemeralForTests?(): Promise<void>;
   close?(): void;
 }
 
@@ -127,6 +128,16 @@ export class VaultWorkspaceController {
   async exportVerifiedHistory():Promise<WorkspaceHistory> {
     const session=this.requireOpen();
     return this.operate("exporting",()=>session.export(),result=>this.ready(result));
+  }
+  /** Erase only the current in-memory fictional vault, never a D1 record. */
+  async eraseEphemeralVault():Promise<void> {
+    const session=this.requireOpen();
+    if(!session.eraseEphemeralForTests)throw new Error("In-memory erasure is not configured.");
+    await this.operate("deleting",()=>session.eraseEphemeralForTests!(),()=>{
+      this.session=null;
+      return {...initial,phase:"closed"};
+    });
+    session.close?.();
   }
   async markDeletionPending():Promise<void> {
     const session=this.requireOpen();
