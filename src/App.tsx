@@ -1,3 +1,4 @@
+import VaultRecordControls from "./VaultRecordControls";
 import { useSyncExternalStore } from "react";
 import type { VaultWorkspaceController, WorkspaceSnapshot } from "./vault-workspace";
 import VaultDashboard from "./VaultDashboard";
@@ -186,6 +187,7 @@ export default function App({workspace}:{workspace?:VaultWorkspaceController}={}
   <div className="experience-main">
     <div className="experience-intro"><span className="eyebrow">IN YOUR HANDS <span className="eyebrow-line"/></span><h1>Decide what happens<br/><em>to your record.</em></h1><p className="lead">The finished service will let you prepare a complete readable account, or request deletion. Nothing is shared with the police automatically.</p></div>
     <div className="export-choices"><div className="export-choice"><span className="choice-icon"><Download size={26}/></span><div><h3>A copy to keep or share</h3><p>Export your original writing, later entries and integrity details when you choose.</p></div><button className="button button-outline" disabled>Unavailable</button></div><div className="export-choice"><span className="choice-icon"><Trash2 size={26}/></span><div><h3>Delete your private record</h3><p>The finished service will explain deletion and any legal retention limits before you act.</p></div><button className="button button-outline" disabled>Unavailable</button></div></div>
+    {workspace && vault.phase!=="locked" && vault.phase!=="closed" && <VaultRecordControls controller={workspace} snapshot={vault}/>}
     <div className="experience-actions"><div className="mini-alert"><ShieldAlert size={18}/> A readable export could be visible to others with access to your device.</div><button className="button" onClick={()=>go("vault")}>Back to vault preview <ArrowRight size={18}/></button></div>
   </div>
   <aside className="experience-scene" aria-hidden="true"><div className="scene-light"/><Botanical className="experience-botanical"/><div className="scene-journal"><div className="scene-journal-ribbon"/><div className="scene-journal-lines"/></div><div className="scene-cup"/><div className="scene-note"><span className="quote-mark">“</span><p>Only you decide when you're ready to share.</p></div></aside>
