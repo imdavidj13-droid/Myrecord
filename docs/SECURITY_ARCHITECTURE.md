@@ -67,6 +67,25 @@ The experiment uses P-256 ECDSA public-key challenge/response:
 
 The draft D1 tables specify opaque IDs, public verification keys, encrypted key envelopes, append-only ciphertext entries and one-use challenge records. **No migrations, bindings or endpoints have been deployed.** Encrypted-data retention, backups, restores, timestamps, cryptographic chain integrity, legal preservation and user-initiated deletion require separate design.
 
+## Phase 5 — recoverable signing credential experiment (isolated)
+
+Code: `src/security/signing-recovery.ts`, `src/security/signing-recovery.test.ts` and the cross-module `src/security/vault-lifecycle.test.ts`.
+
+- Generates a random P-256 ECDSA signing key pair and exports only the public verification key as JWK metadata.
+- A briefly extractable private key is *wrapped* using Web Crypto `wrapKey("pkcs8", ...)`, with an AES-256-GCM key derived from the BIP39 entropy through HKDF-SHA-256.
+- Uses an **independent domain tag and a fresh salt** for signing-key wrapping, separate from the data-key wrapping module.
+- Binds the encrypted PKCS8 backup to the public verification key and vault identifier using authenticated associated data.
+- The returned private signing key is non-extractable. Recovery uses `unwrapKey(..., false, ["sign"])`, also producing a non-extractable key.
+- Recovery signs a random local test message and verifies it against the supplied public JWK, detecting mismatched key pairs.
+- The cross-module test serialises only encrypted envelopes and synthetic ciphertext, then restores both the data-decryption and authentication credentials using the **same 12-word phrase**.
+- Reconciles the vault locator to canonical URL-safe Base64 to match the access-proof prototype. **This locator is public metadata, not a recovery secret and not an authorization credential.**
+
+**Important constraints:** A private key must be temporarily extractable when created for encrypted backup. A hostile frontend script or compromised device could potentially steal it at that point; reimporting it as non-extractable does not eliminate the threat. Recovery words and decrypted credentials are processed in the browser's memory and cannot be guaranteed erased. No browser memory, state, encrypted backup, authentication proof or API is persisted/sent by this module.
+
+**Not a production vault:** This code is not connected to the website, authenticated registration, distributed challenge verification, server storage or recovery UI. A valid recovered key is not proof of server authorization until the verification key is authenticated against a securely registered vault, challenges are consumed atomically and every endpoint enforces authorization. Ciphertext rollback, missing entries, retention, recovery UX, abuse protections and independent review are all unresolved.
+
+**Next development gate:** execute the full crypto test suite and TypeScript build in CI; review the key lifecycle with an independent cryptographer; design authenticated enrollment and recovery of the *vault locator* without leaking sensitive inputs. Do not activate storage or accept real testimony until those gates are complete.
+
 ## Threat model (initial)
 
 Protect against:
