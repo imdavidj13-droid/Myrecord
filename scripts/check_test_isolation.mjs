@@ -56,9 +56,9 @@ assert.ok(localVite.includes('host:"127.0.0.1"') &&
   localVite.includes('target:"http://127.0.0.1:18880"'),
   "Test-only Vite config must remain bound to localhost.");
 const inBrowserVault=read("src/ephemeral-fictional-vault.ts");
-assert.equal(/\\b(fetch|XMLHttpRequest|localStorage|sessionStorage|indexedDB|sendBeacon)\\b/.test(
-  inBrowserVault.replace(/\\/\\*[\\s\\S]*?\\*\\/|\\/\\/[^\\n]*/g,"")
-),false,"Fictional browser vault must never access network or persistent browser storage.");
+assert.equal(
+  ["fetch(", "XMLHttpRequest", "localStorage.", "sessionStorage.", "indexedDB.", "sendBeacon("]
+    .some(pattern=>inBrowserVault.includes(pattern))),false,"Fictional browser vault must never access network or persistent browser storage.");
 const publicMain=read("src/main.tsx");
 assert.ok(publicMain.includes('ExistingSiteTestApp') &&
   !publicMain.includes("worker-protocol-test"),
