@@ -104,7 +104,7 @@ function syntheticTransport() {
       const item=[...vaults.values()][0];
       if(item && item.entries.length) {
         const entry=item.entries[0];
-        item.entries[0]={...entry,ciphertext:"AAAA"+entry.ciphertext.slice(4)};
+        item.entries[0]={...entry,ciphertext:(entry.ciphertext.startsWith("A")?"B":"A")+entry.ciphertext.slice(1)};
       }
     }
   };
