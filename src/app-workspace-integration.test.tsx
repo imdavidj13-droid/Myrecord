@@ -77,6 +77,19 @@ describe("P2 actual App route wiring — no public storage session",()=>{
       expect(markup).not.toContain(">Unavailable</button>");
     } finally {controller.close();vi.unstubAllGlobals();}
   });
+  it("renders the age-inclusive support page without a form or account requirement",()=>{
+    vi.stubGlobal("window",{location:{pathname:"/support"}});
+    try {
+      const markup=renderToStaticMarkup(createElement(ExistingSiteTestApp));
+      expect(markup).toContain("Childline");
+      expect(markup).toContain("Samaritans");
+      expect(markup).toContain("0800 1111");
+      expect(markup).toContain("116 123");
+      expect(markup).toContain("Quick exit");
+      expect(markup).not.toContain("<form");
+      expect(markup).not.toContain("Fictional test mode — not a secure records service");
+    } finally {vi.unstubAllGlobals();}
+  });
   it("keeps public recovery unavailable and only renders fictional recovery with explicit injection",()=>{
     vi.stubGlobal("window",{location:{pathname:"/return"}});
     try {
