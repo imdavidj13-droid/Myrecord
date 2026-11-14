@@ -246,9 +246,9 @@ Test-only files: `docs/D1_REGISTRATION_PROTOTYPE.sql`, `src/security/d1-registra
 - Only `wrangler.d1-test.jsonc` and `--local` commands are used. The real `mysafespace-db` is not accessed. No production Worker handlers are enabled.
 - Verify GitHub Actions after the latest commit before reporting these new checks as passing.
 
-## Phase 19 — connected fictional website demo (no testimony entry)
+## Phase 19 — retired interface-only demonstration (not deployed)
 
-- Added `src/DemoJourney.tsx` and `src/demo.css`, reachable from the homepage and navigation at `/demo`.
+- The standalone `/demo` route and its files were subsequently removed at the user's request. Development is focused on the actual MySafeSpace application screens, without enabling storage of real testimony.
 - The demonstration links welcome, numbered placeholder recovery labels, confirmation, dashboard, four writing-mode layouts (free, journal, guided, focus), fictional revision history, and readable sample JSON export.
 - All entries are fixed, invented strings selected by clicking "Add this fictional entry". The demo has **no free-text testimony input**, no real 12-word phrase, no encryption-key generation, no localStorage/sessionStorage, no API calls, and no D1 operations. State is React memory only, reset on refresh.
 - The export preview is illustrative JSON and **not** an evidence certificate, authenticated record, timestamp, or actual downloaded archive.
