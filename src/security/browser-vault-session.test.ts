@@ -143,6 +143,15 @@ describe("browser vault session composition — synthetic-only boundary",()=>{
     )).rejects.toThrow();
   });
 
+  it("rejects rollback in the same browser session even without an external head",async()=>{
+    const fake=syntheticTransport(),phrase=generateRecoveryWords();
+    const session=await BrowserVaultSessionForTests.register(fake.transport,phrase);
+    await session.appendSyntheticText("Invented event");
+    fake.suppressLastEntry();
+    await expect(session.read()).rejects.toThrow("rolled back");
+    await expect(session.export()).rejects.toThrow("rolled back");
+  });
+
   it("rejects altered ciphertext and never delivers it as readable history",async()=>{
     const fake=syntheticTransport(),phrase=generateRecoveryWords();
     const session=await BrowserVaultSessionForTests.register(fake.transport,phrase);
