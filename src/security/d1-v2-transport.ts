@@ -16,6 +16,7 @@ import {
   issueRegistrationChallengeD1ForTests, registerVaultD1ForTests
 } from "./d1-registration";
 import { issueD1ReadChallengeForTests } from "./d1-read-export";
+import { issueDeletionChallengeD1ForTests, requestVaultDeletionD1ForTests } from "./d1-deletion";
 import { readIntegrityHistoryD1ForTests } from "./d1-v2-read";
 import {
   issueIntegrityAppendChallengeD1ForTests, appendIntegrityEntryD1ForTests
@@ -114,6 +115,12 @@ export function createD1VaultTransportForTests(
         latestRevision: result.revision,
         headDigest: result.headDigest
       };
+    },
+    issueDeletionChallenge(vaultId) {
+      return issueDeletionChallengeD1ForTests(db,vaultId,now());
+    },
+    async markDeletionPending(challenge,intent) {
+      await requestVaultDeletionD1ForTests(db,challenge,intent,now());
     },
     issueAppendChallenge(envelope) {
       return issueIntegrityAppendChallengeD1ForTests(db, envelope, now());
