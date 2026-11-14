@@ -318,6 +318,15 @@ Test-only files: `docs/D1_REGISTRATION_PROTOTYPE.sql`, `src/security/d1-registra
 - The new Worker is **never referenced by the deployment configuration** and has no real registration, reading, export, deletion or writing route. This validates an actual Worker-to-local-D1 binding, **not** full browser-to-Worker authenticated cryptographic operations. The latter remains outstanding and must use a dedicated integration fixture without production access.
 - The test has been committed but should not be marked verified until the new GitHub Actions job passes. No production migration or public API activation was performed.
 
+## Phase 27 — signed HTTP protocol through an isolated local Worker (CI candidate)
+
+- Added `scripts/worker-protocol-test.ts` with a separate `wrangler.protocol-test.jsonc`, configured exclusively for the fictional D1 UUID `00000000-0000-4000-8000-000000000001`. The normal production `wrangler.jsonc` remains an **assets-only deployment** and must not import this test entrypoint.
+- The test Worker delegates to the existing `createD1VaultTransportForTests` adapters. Its seven routes are all under `/__local_protocol__/` and accept POST-only JSON for challenge issuance, signed registration, encrypted backup lookup, signed read/export challenge and history, and encrypted append challenge and submission.
+- Added `scripts/test_worker_signed_protocol.mjs`, which creates a fresh Wrangler local D1 with only sandbox schemas, bundles the existing test-only browser client with the installed esbuild package, and drives a fictional two-entry lifecycle across actual local HTTP requests. It independently recovers access from a BIP39 phrase, exports and verifies the two encrypted records, and checks captured HTTP request bodies do not include the recovery phrase or fictional plaintext.
+- Negative checks attempt unsigned history access and submission of an explicit secret-bearing request field; the test also checks public-style paths remain unavailable. Test-only request-shape guards and generic error messages are not substitutes for hardened production API validation, rate limiting, security headers, device-threat modelling or privacy safeguards.
+- CI executes the local test and cleans up temporary state. **Do not claim this test passed until the GitHub Actions run is verified.**
+- These local endpoints are intentionally NOT reachable on the deployed MySafeSpace site. Do not enable them in production or bind the Worker to `mysafespace-db`. Independent audit, DPIA, safeguarding and a production migration/incident response plan are still mandatory before any real testimony is accepted.
+
 ## Threat model (initial)
 
 Protect against:
