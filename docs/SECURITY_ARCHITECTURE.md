@@ -309,6 +309,15 @@ Test-only files: `docs/D1_REGISTRATION_PROTOTYPE.sql`, `src/security/d1-registra
 - **Scope limitation:** This is a real local-D1 ciphertext storage round trip, but it does *not* exercise an HTTP Worker endpoint, signed request verification, secure session establishment, cross-device persistence, legitimate retention/deletion, or independent operator-proof time anchoring. It creates synthetic registration metadata without real signing proofs, so it does not demonstrate server-side authorization. Earlier independent TypeScript tests exercise those algorithms.
 - The new CI run must pass before reporting this milestone as verified. No production D1 binding or API route was touched.
 
+## Phase 26 — isolated local Worker-to-D1 smoke integration
+
+- Added `scripts/worker-local-test.ts`, `wrangler.worker-test.jsonc`, and `scripts/test_worker_local_d1.mjs`. The config uses only the fictional database identifier `00000000-0000-4000-8000-000000000001`, unlike `wrangler.jsonc` used by the deployed frontend.
+- GitHub Actions now creates a fresh temporary Wrangler local D1 state directory, applies the three sandbox schemas and the synthetic registration / two-revision fixture, and starts a real local Cloudflare Worker on `127.0.0.1`.
+- The **only** test Worker route is `GET /__local_test__/health`; it queries aggregate counts for consumed registration challenges, active synthetic vaults, v2 entries and completed heads. It returns no vault IDs, phrase, backup, ciphertext or entry contents.
+- The test checks that the fixture health is successful and that POST requests and arbitrary paths such as `/api/v1/vault` return HTTP 404. It shuts down the local Worker and deletes temporary state after the run.
+- The new Worker is **never referenced by the deployment configuration** and has no real registration, reading, export, deletion or writing route. This validates an actual Worker-to-local-D1 binding, **not** full browser-to-Worker authenticated cryptographic operations. The latter remains outstanding and must use a dedicated integration fixture without production access.
+- The test has been committed but should not be marked verified until the new GitHub Actions job passes. No production migration or public API activation was performed.
+
 ## Threat model (initial)
 
 Protect against:
