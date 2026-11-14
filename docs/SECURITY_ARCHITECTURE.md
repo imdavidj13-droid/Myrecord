@@ -32,6 +32,23 @@ Implemented in `src/security/recovery.ts`, with tests in `recovery.test.ts`:
 
 **Outstanding before live phrase generation:** independently review the full key-wrapping and anonymous authentication protocol; decide on compatible recovery formats; verify client delivery integrity; create the actual recovery confirmation flow; and demonstrate that neither the phrase nor any key material reaches the server or logs.
 
+## Phase 3 — vault-key wrapping experiment (isolated)
+
+Code: `src/security/key-wrapping.ts` and `src/security/key-wrapping.test.ts`.
+
+- Uses the existing 12-word BIP39 phrase to decode **128-bit randomly generated entropy** locally.
+- Uses Web Crypto HKDF-SHA-256 with a fresh per-vault salt, a domain-separated context, and a random opaque vault ID to derive an in-memory AES-256-GCM **wrapping key**.
+- Generates a *separate, random 256-bit data-encryption key*; encrypts that key with AES-GCM and a new 96-bit IV, authenticating the vault ID in associated data.
+- Returns a versioned encrypted key envelope with only public metadata and the wrapped key. The unwrapped data key is imported as a **non-extractable CryptoKey** for use only in synthetic tests.
+- Validates envelope structure and rejects changed metadata, ciphertext, an invalid phrase, and the wrong valid phrase.
+- Neither recovery words nor source entropy are returned in the envelope; no network requests or storage are implemented.
+
+**Experimental cryptographic protocol, not reviewed or launched.** HKDF is appropriate for this *uniformly generated, high-entropy* source; it is **not a password-hardening KDF** and does not make weak human-chosen phrases safe. The experimental function currently exposes a `CryptoKey` to its caller, which must remain within the trusted browser context. JavaScript memory clearing is best-effort only. This experiment does not implement real entry-key hierarchy, secure frontend delivery, server authentication, replay protection, data persistence, recovery confirmation or account deletion.
+
+**Critical unresolved requirement:** A valid phrase must not itself become a reusable bearer token at the API. The real storage access protocol needs an independently assessed design that prevents the service from receiving phrase entropy or decryption material, and protects the encrypted vault against unauthorized reads, overwrites, deletion and enumeration. Do not derive a predictable public lookup key by hashing the recovery words. Any separate authentication credential must be generated and used without leaking vault secrets.
+
+**Before changing the user interface:** Validate browser behaviour and CI, review the exact protocol and dependencies with an independent cryptographer/security professional, plan for secure software updates and server-side metadata protection, and design the complete backup/recovery lifecycle. Live encryption/recovery buttons remain intentionally disabled.
+
 ## Threat model (initial)
 
 Protect against:
