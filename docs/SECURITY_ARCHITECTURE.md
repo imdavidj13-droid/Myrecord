@@ -110,6 +110,21 @@ Implemented in the harness:
 
 **This is not a complete secure vault.** Avoid calling it production-ready, deploying the draft schema, creating live endpoints, or accepting real survivor testimony.
 
+## Phase 7 — unauthenticated encrypted-key bootstrap (isolated)
+
+Code: `src/security/recovery-bootstrap.ts`, `src/security/recovery-bootstrap.test.ts`, and extensions to `src/security/synthetic-vault-store.ts`. **Not deployed or connected to the website.**
+
+- A deterministic, domain-separated HKDF-SHA-256 lookup identifier is derived **inside the browser** from the 128 bits of CSPRNG-generated BIP39 entropy. It differs from vault encryption and signing keys. It is 32 bytes, represented as 43 base64url characters.
+- The test registration accepts a lookup ID and stores an index to the vault. An unauthenticated lookup returns **only the versioned encrypted backup envelopes, public verification key and opaque vault ID**, never entry ciphertext, plaintext, recovery words or signed permissions.
+- The client locally unwraps the data key and signing private key. Subsequent ciphertext reads still require a one-time signed challenge using the recovered private key.
+- Tests exercise returning in a simulated fresh browser, independent vault lookup, wrong words, duplicate identifiers and lookup removal on test deletion.
+
+**Unresolved safety and privacy issues:** The lookup identifier is a stable pseudonymous account locator, **not anonymous metadata**. An attacker who knows it can request the key backup; an encrypted backup may permit offline guessing and account-existence checks. Security depends on truly random 128-bit recovery phrases, independently assessed cryptographic construction and robust client integrity. Avoid leaking the lookup ID via GET paths, query strings, referrers, analytics, logs or third-party scripts. A future lookup should use a carefully designed POST body under strict log suppression and strong rate limits; even then the operator would observe requests and linkability. Claims of absolute anonymity are inappropriate.
+
+**Registration binding gap:** The current registration challenge signs the vault/action/nonce/expiry but **not** the lookup ID, encrypted envelopes or registration request digest. Malicious clients and request alteration could misbind a lookup ID to a different vault or backup. The prototype does not prove that the submitting client knows recovery words matching its lookup ID. This must be addressed in the reviewed authenticated-registration protocol before deployment.
+
+**Storage gap:** In-memory Maps and public backup lookup are test-only. The real implementation must avoid timing/enumeration leaks, perform atomic request authorization and mutations, secure backups against rollback, provide durable data consistency, design safe deletion and disaster recovery, and undergo independent security and UK privacy review.
+
 ## Threat model (initial)
 
 Protect against:
