@@ -11,11 +11,12 @@
  */
 import type { EncryptedStoredEntry } from "./synthetic-vault-store";
 import type { ProofChallengeV1 } from "./access-proof";
-import { importVerificationKeyForTests } from "./access-proof";
+import { importVerificationKeyForTests, issueChallengeForTests } from "./access-proof";
 
 export interface PrototypeD1Statement {
   bind(...args: Array<string | number>): PrototypeD1Statement;
   first<T>(): Promise<T | null>;
+  run(): Promise<unknown>;
 }
 export interface PrototypeD1Database {
   prepare(query: string): PrototypeD1Statement;
@@ -125,6 +126,36 @@ export async function verifyBoundAppendForTests(
   } catch {
     return false;
   }
+}
+
+/**
+ * Test-only server challenge issuance. The plaintext recovery phrase is never
+ * accepted. It records the SHA-256 digest of the exact proposed ciphertext
+ * append request, binding later proof verification to this payload.
+ *
+ * The caller must enforce abuse/rate limits before this function is deployed.
+ */
+export async function issueBoundAppendChallengeD1ForTests(
+  db: PrototypeD1Database,
+  vaultId: string,
+  entry: EncryptedStoredEntry,
+  now: number
+): Promise<ProofChallengeV1> {
+  if (!Number.isSafeInteger(now)) throw new Error("Invalid challenge time.");
+  const challenge = issueChallengeForTests(vaultId, "append", now);
+  const digest = await digestAppendIntentForTests(challenge, entry);
+  await db.prepare(`
+    INSERT INTO sandbox_challenges(nonce, vault_id, action, issued_ms, expires_ms, request_digest)
+    SELECT ?, vault_id, 'append', ?, ?, ? FROM sandbox_vaults
+    WHERE vault_id = ? AND status = 'active'
+  `).bind(
+    challenge.nonce, challenge.issuedAt, challenge.expiresAt,
+    digest, challenge.vaultId
+  ).run();
+  // Production MUST verify exactly one challenge was inserted. SQL SELECT
+  // can silently insert 0 rows if the vault is missing; never advertise
+  // this method as production-ready without checking run().meta.changes.
+  return challenge;
 }
 
 /**
