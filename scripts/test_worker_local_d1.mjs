@@ -47,8 +47,7 @@ async function run() {
   server=spawn("npx",[
     "--yes","wrangler@4.156.2","dev",
     "--config",config,"--local","--persist-to",stateDir,
-    "--ip","127.0.0.1","--port",String(port),
-    "--log-level","error"
+    "--ip","127.0.0.1","--port",String(port)
   ],{cwd:root,stdio:["ignore","pipe","pipe"],detached:true});
   let stderr="";
   server.stderr.on("data",chunk=>{stderr+=(String(chunk)).slice(-5000);});
