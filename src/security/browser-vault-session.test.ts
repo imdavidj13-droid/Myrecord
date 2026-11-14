@@ -172,17 +172,15 @@ describe("browser vault session composition — synthetic-only boundary",()=>{
     const fake=syntheticTransport(),phrase=generateRecoveryWords();
     const session=await BrowserVaultSessionForTests.register(fake.transport,phrase);
     const original=fake.transport.read.bind(fake.transport);
+    let signalEntered:()=>void=()=>{};
+    const entered=new Promise<void>(resolve=>{signalEntered=resolve;});
     let release:(result:Awaited<ReturnType<typeof original>>)=>void=()=>{};
     fake.transport.read=async input=>{
       const result=await original(input);
-      return new Promise(resolve=>{release=resolve;});
+      return new Promise(resolve=>{release=resolve;signalEntered();});
     };
     const pending=session.read();
-    // Allow the read adapter to reach its deferred response.
-    for(let i=0;i<50;i++){
-      if(release.toString().includes("resolve"))break;
-      await Promise.resolve();
-    }
+    await entered;
     session.close();
     release({entries:[],latestRevision:0,headDigest:"0".repeat(64)});
     await expect(pending).rejects.toThrow("closed");
