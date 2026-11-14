@@ -48,7 +48,7 @@ function decodeSignature(input: string): ArrayBuffer {
   if (!signaturePattern.test(input)) throw new Error("Malformed read signature.");
   const base64 = input.replace(/-/g,"+").replace(/_/g,"/") + "==";
   const binary = atob(base64);
-  const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+  const bytes = Uint8Array.from(Array.from(binary, char => char.charCodeAt(0)));
   if (bytes.length !== 64 || b64url(bytes) !== input) throw new Error("Malformed read signature.");
   return buffer(bytes);
 }
