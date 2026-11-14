@@ -72,7 +72,17 @@ describe("authenticated D1 read and export — synthetic only",()=>{
     const proof=await signD1ReadRequestForTests(f.signing.privateKey,challenge,"export",0);
     const result=await executeD1ReadForTests(recorded.db,challenge,"export",0,proof,now+1);
     expect(result.backup).toEqual(f.backup);
-    expect(JSON.stringify(result)).not.toContain(phraseSentinel);
+    expect(JSON.stringify(result)).not.toContain("synthetic only");
+  });
+
+  it("refuses partial encrypted exports and nonzero export cursors",async()=>{
+    const f=await setup(), recorded=mockDB(f);
+    const challenge=issueChallengeForTests(f.backup.vaultId,"export",now);
+    await expect(signD1ReadRequestForTests(f.signing.privateKey,challenge,"export",1)).rejects.toThrow();
+    const proof=await signD1ReadRequestForTests(f.signing.privateKey,challenge,"export",0);
+    // A stale or incomplete server response must not be presented as a full export.
+    f.rows.splice(0,1);
+    await expect(executeD1ReadForTests(recorded.db,challenge,"export",0,proof,now+1)).rejects.toThrow("Incomplete");
   });
 
   it("rejects changing the action or requested revision",async()=>{
@@ -110,4 +120,3 @@ describe("authenticated D1 read and export — synthetic only",()=>{
     expect(recorded.sqls.some(s=>s.includes("INSERT INTO sandbox_challenges"))).toBe(true);
   });
 });
-const phraseSentinel="a-secret-phrase-that-is-not-saved";
