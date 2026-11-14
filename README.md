@@ -2,7 +2,7 @@
 
 A privacy-first, **text-only** survivor testimony vault concept.
 
-> **DESIGN PROTOTYPE ONLY — DO NOT ENTER REAL TESTIMONY.** The website has no backend, persistent storage, integrated encryption, user accounts, recovery keys or police export. A separate experimental crypto module exists for synthetic tests only. It must not be offered to survivors as a secure service until a reviewed cryptographic protocol, legal/safeguarding requirements, independent penetration testing and an operational security review are complete.
+> **DESIGN PROTOTYPE ONLY — DO NOT ENTER REAL TESTIMONY.** The public website has no persistent record storage, registered vault accounts, usable recovery credentials or police export. It provides a fictional-only, browser-memory AES-GCM test mode. Signed D1 adapters remain experimental and are not publicly enabled. It must not be offered to survivors as a secure service until a reviewed cryptographic protocol, legal/safeguarding requirements, independent penetration testing and an operational security review are complete.
 
 ## Run locally
 
@@ -31,6 +31,9 @@ Approved identity: warm ivory, deep forest green, sage accents, subtle botanical
 - Careful treatment of minors, safeguarding, consent, lawful disclosure requests and metadata.
 - Never silently persist plaintext; never send testimony to analytics, logs, or third-party scripts.
 
-## Prototype behaviour
+## Existing-site fictional testing
 
-All text is kept only in the currently open page's React state. **It is not encrypted or saved and will be lost when the page reloads or closes.** Use synthetic test text only.
+Use **Start fictional test** on the current MySafeSpace website. The real writing, dashboard and export screens can now save and display invented entries in a browser-memory AES-256-GCM vault.
+
+**Important:** The records are not saved to Cloudflare D1, files, localStorage or any remote system. Refreshing, closing the browser tab or ending the test destroys all entries. Recovery and actual permanent deletion remain unavailable in this mode. Never enter real experiences, names or identifying information.
+
