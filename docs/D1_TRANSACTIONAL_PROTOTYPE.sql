@@ -12,6 +12,15 @@ CREATE TABLE IF NOT EXISTS sandbox_vaults (
   status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'deleted'))
 );
 
+-- Public verification keys and encrypted bootstrap must not be rewritten by
+-- a compromised/misconfigured application endpoint after registration.
+CREATE TRIGGER IF NOT EXISTS sandbox_vault_identity_immutable
+BEFORE UPDATE OF vault_id, lookup_id, verification_jwk, wrapped_backup_json
+ON sandbox_vaults
+BEGIN
+  SELECT RAISE(ABORT, 'vault identity and backup are immutable');
+END;
+
 CREATE TABLE IF NOT EXISTS sandbox_challenges (
   nonce TEXT NOT NULL PRIMARY KEY,
   vault_id TEXT NOT NULL,
