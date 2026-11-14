@@ -5,18 +5,16 @@ import {renderToStaticMarkup} from "react-dom/server";
 import App from "./App";
 import {VaultWorkspaceController, type WorkspaceSession} from "./vault-workspace";
 
-describe("Existing-site layout shell",()=>{
-  it("renders one root wrapper with a compact test toolbar and the site as siblings",()=>{
+describe("Existing-site header and fictional test controls",()=>{
+  it("renders the actual site with a compact header control and no test banner",()=>{
     vi.stubGlobal("window",{location:{pathname:"/write"}});
     try{
       const markup=renderToStaticMarkup(createElement(ExistingSiteTestApp));
-      expect(markup).toContain('class="existing-site-test-shell"');
-      expect(markup).toContain('class="existing-site-test-controls"');
       expect(markup).toContain('class="site screen-write');
-      const toolbar=markup.indexOf('class="existing-site-test-controls"');
-      const site=markup.indexOf('class="site screen-write');
-      expect(toolbar).toBeGreaterThan(-1);
-      expect(site).toBeGreaterThan(toolbar);
+      expect(markup).toContain('class="header-test-controls"');
+      expect(markup).toContain("Start test");
+      expect(markup).not.toContain('class="existing-site-test-controls"');
+      expect(markup).toContain("Your writing");
     }finally{vi.unstubAllGlobals();}
   });
 });
