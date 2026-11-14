@@ -69,6 +69,17 @@ export default function App({workspace,recoverFictional}:AppProps){
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
+  useEffect(()=>{
+    if(!workspace)return;
+    const onPageHide=()=>{
+      workspace.close();
+      setWriting("");
+      setRecoveryPhrase("");
+      setOnboardingConfirmed(false);
+    };
+    window.addEventListener("pagehide",onPageHide);
+    return ()=>window.removeEventListener("pagehide",onPageHide);
+  },[workspace]);
   const go=(page:Screen)=>{
     // Do not retain recovery words when leaving the onboarding screens.
     if(page!=="recovery" && page!=="confirm") setRecoveryPhrase("");
