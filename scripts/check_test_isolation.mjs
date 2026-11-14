@@ -63,4 +63,21 @@ const publicMain=read("src/main.tsx");
 assert.ok(publicMain.includes('ExistingSiteTestApp') &&
   !publicMain.includes("worker-protocol-test"),
   "Existing-site test mode must remain disconnected from test Worker and production D1.");
+// Enforce public browser hardening as part of every build.
+const headers=read("public/_headers");
+for(const requirement of [
+  "default-src 'none'",
+  "script-src 'self'",
+  "connect-src 'self'",
+  "form-action 'none'",
+  "frame-ancestors 'none'",
+  "Referrer-Policy: no-referrer",
+  "X-Content-Type-Options: nosniff",
+  "Cache-Control: no-store"
+]){
+  assert.ok(headers.includes(requirement),
+    "Required privacy/security response header is missing: "+requirement);
+}
+assert.equal(/https?:\\/\\/[^\\s"']+/.test(read("src/ephemeral-fictional-vault.ts")),false,
+  "No external HTTP destinations belong in the in-memory vault.");
 console.log("PASS: test-only Worker configs use fictional D1; public bundle entrypoints and production config are isolated.");
