@@ -1,0 +1,48 @@
+/**
+ * Fail CI if isolated cryptographic/Worker test infrastructure becomes
+ * reachable through the production deployment configuration or site bundle.
+ * This is a guardrail, not an independent security audit.
+ */
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+const root=resolve(import.meta.dirname,"..");
+const read=path=>readFileSync(resolve(root,path),"utf8");
+const parse=path=>JSON.parse(read(path));
+const production=parse("wrangler.jsonc");
+const workerConfig=parse("wrangler.worker-test.jsonc");
+const protocolConfig=parse("wrangler.protocol-test.jsonc");
+const d1Config=parse("wrangler.d1-test.jsonc");
+const fakeId="00000000-0000-4000-8000-000000000001";
+
+assert.equal(production.main,undefined,
+  "Production config must remain an assets-only Worker.");
+assert.equal(production.assets?.directory,"./dist");
+assert.ok(Array.isArray(production.d1_databases));
+for(const config of [workerConfig,protocolConfig,d1Config]){
+  assert.ok(config.d1_databases?.length===1);
+  assert.equal(config.d1_databases[0].database_id,fakeId,
+    "Test Worker must never refer to a real D1 database UUID.");
+  assert.equal(config.d1_databases[0].database_name,"mysafespace-d1-local-test");
+}
+assert.equal(workerConfig.main,"./scripts/worker-local-test.ts");
+assert.equal(protocolConfig.main,"./scripts/worker-protocol-test.ts");
+
+for(const path of ["src/main.tsx","src/App.tsx","src/VaultDashboard.tsx"]){
+  const source=read(path);
+  assert.equal(/worker-protocol-test|worker-local-test|d1-v2-transport|browser-vault-session/.test(source),false,
+    "Public frontend must not import synthetic-only Worker or vault transport: "+path);
+}
+for(const path of [
+  "scripts/test_d1_local_crypto.mjs",
+  "scripts/test_worker_local_d1.mjs",
+  "scripts/test_worker_signed_protocol.mjs"
+]){
+  const source=read(path);
+  assert.equal(source.includes("--remote"),false,
+    "Synthetic local D1 scripts must not carry Wrangler remote flag.");
+  assert.equal(source.includes("3ef2d249-f2a6-4a4e-ba7a-f984aebec177"),false,
+    "Synthetic scripts must not reference live D1 ID.");
+}
+console.log("PASS: test-only Worker configs use fictional D1; public bundle entrypoints and production config are isolated.");
