@@ -19,5 +19,7 @@ jobs:
         run: npm test
       - name: Validate transactional D1 draft schema with SQLite
         run: python3 scripts/test_d1_schema.py
+      - name: Validate concurrent append and nonce rollback
+        run: python3 scripts/test_d1_concurrency.py
       - name: Typecheck and build
         run: npm run build
