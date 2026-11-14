@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { VaultWorkspaceController, type WorkspaceHistory, type WorkspaceSession } from "./vault-workspace";
-import { packageVerifiedExportForTests, serializeVerifiedExportForTests } from "./security/verified-export";
+import { packageVerifiedExportForTests, serializeVerifiedExportForTests, serializeReadableExportForTests } from "./security/verified-export";
 
 const zero="0".repeat(64);
 const digest="a".repeat(64);
@@ -158,6 +158,15 @@ describe("P3 explicit fictional export formatting",()=>{
     expect(result.entries.map(e=>e.revision)).toEqual([1,2]);
     expect(result.warning).toContain("NOT A FORENSIC");
     expect(result.headDigest).toBe(digest);
+  });
+  it("includes all fictional text and checked history metadata in readable export",()=>{
+    const readable=serializeReadableExportForTests(history(["Fictional first","Fictional second"]));
+    expect(readable).toContain("NOT A FORENSIC CERTIFICATION");
+    expect(readable).toContain("REVISION 1");
+    expect(readable).toContain("REVISION 2");
+    expect(readable).toContain("Fictional first");
+    expect(readable).toContain("Fictional second");
+    expect(readable).toContain("Head digest (SHA-256): "+digest);
   });
   it("rejects missing revisions and mismatched metadata",()=>{
     expect(()=>packageVerifiedExportForTests({...history(["One"]),latestRevision:2})).toThrow();
