@@ -70,5 +70,7 @@ jobs:
 
       - name: Verify real AES-GCM ciphertext in isolated Wrangler D1
         run: node scripts/test_d1_local_crypto.mjs
+      - name: Verify isolated local Worker and D1 binding
+        run: node scripts/test_worker_local_d1.mjs
       - name: Typecheck and build
         run: npm run build
