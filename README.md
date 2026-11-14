@@ -2,7 +2,7 @@
 
 A privacy-first, **text-only** survivor testimony vault concept.
 
-> **DESIGN PROTOTYPE ONLY — DO NOT ENTER REAL TESTIMONY.** This implementation intentionally has no backend, persistent storage, encryption, user accounts, recovery keys or police export. It must not be offered to survivors as a secure service until a reviewed cryptographic protocol, legal/safeguarding requirements, independent penetration testing and an operational security review are complete.
+> **DESIGN PROTOTYPE ONLY — DO NOT ENTER REAL TESTIMONY.** The website has no backend, persistent storage, integrated encryption, user accounts, recovery keys or police export. A separate experimental crypto module exists for synthetic tests only. It must not be offered to survivors as a secure service until a reviewed cryptographic protocol, legal/safeguarding requirements, independent penetration testing and an operational security review are complete.
 
 ## Run locally
 
@@ -10,6 +10,10 @@ A privacy-first, **text-only** survivor testimony vault concept.
 npm install
 npm run dev
 ```
+
+Run the test suite with `npm test` and check the production build with `npm run build`.
+
+Security development notes: [docs/SECURITY_ARCHITECTURE.md](docs/SECURITY_ARCHITECTURE.md).
 
 ## Product design
 
