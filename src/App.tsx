@@ -1,8 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, CheckCircle2, FileText, Info, Scale, UserRoundX, UsersRound, BookOpen, ChevronDown, Download, EyeOff, Feather, Focus, Heart, KeyRound, LockKeyhole, Menu, PenLine, ShieldCheck, ShieldAlert, Sparkles, Trash2, X } from "lucide-react";
 
 type Screen = "home" | "before" | "recovery" | "confirm" | "write" | "vault" | "return" | "export";
 type Mode = "free" | "journal" | "guided" | "focus";
+const routes: Record<Screen, string> = {
+  home: "/", before: "/before-you-begin", recovery: "/recovery-words",
+  confirm: "/confirm-recovery", write: "/write", vault: "/vault",
+  return: "/return", export: "/export"
+};
+const screenFromPath = (path: string): Screen => {
+  const normalized = path.replace(/\/+$/, "") || "/";
+  return (Object.keys(routes) as Screen[]).find(screen => routes[screen] === normalized) ?? "home";
+};
 const prompts = ["What would you like to remember?", "Is there a particular moment you want to describe?", "Would it help to note when or where this happened?", "Is there anything you might want to add another time?"];
 const reassurances = [
   {title:"There is no right way to begin.", body:"You can start anywhere, with whatever feels important."},
@@ -12,7 +21,7 @@ const reassurances = [
 ];
 function Botanical({className=""}:{className?:string}) {return <div className={`botanical ${className}`} aria-hidden="true"><span className="stem"/>{Array.from({length:7},(_,i)=><span key={i} className={`leaf leaf-${i+1}`}/>)}</div>}
 export default function App(){
-  const [screen,setScreen]=useState<Screen>("home");
+  const [screen,setScreen]=useState<Screen>(()=>screenFromPath(window.location.pathname));
   const [mode,setMode]=useState<Mode>("free");
   const [writing,setWriting]=useState("");
   const [support,setSupport]=useState(true);
@@ -20,7 +29,19 @@ export default function App(){
   const [message,setMessage]=useState(0);
   const [ack,setAck]=useState(false);
   const [mobileMenu,setMobileMenu]=useState(false);
-  const go=(page:Screen)=>{setScreen(page);setMobileMenu(false);};
+  useEffect(() => {
+    const onPopState = () => {
+      setScreen(screenFromPath(window.location.pathname));
+      setMobileMenu(false);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+  const go=(page:Screen)=>{
+    if(window.location.pathname !== routes[page]) window.history.pushState({screen:page},"",routes[page]);
+    setScreen(page);
+    setMobileMenu(false);
+  };
   const quit=()=>{setWriting("");setAck(false);window.location.replace("about:blank");};
   const modeNames:Record<Mode,string>={free:"Free writing",journal:"Journal",guided:"Guided writing",focus:"Focus mode"};
   return <div className={`site screen-${screen} ${mode==="focus"&&screen==="write"?"focus-site":""}`}>
