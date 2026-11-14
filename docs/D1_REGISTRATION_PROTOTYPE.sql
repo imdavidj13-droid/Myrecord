@@ -8,7 +8,9 @@ CREATE TABLE IF NOT EXISTS sandbox_registration_challenges (
   issued_ms INTEGER NOT NULL,
   expires_ms INTEGER NOT NULL CHECK(expires_ms > issued_ms),
   consumed_ms INTEGER,
-  CHECK(consumed_ms IS NULL OR consumed_ms >= issued_ms)
+  consume_marker TEXT UNIQUE,
+  CHECK(consumed_ms IS NULL OR consumed_ms >= issued_ms),
+  CHECK((consumed_ms IS NULL) = (consume_marker IS NULL))
 );
 
 CREATE INDEX IF NOT EXISTS sandbox_registration_expiry
@@ -30,8 +32,9 @@ BEGIN
 END;
 
 CREATE TRIGGER IF NOT EXISTS sandbox_reg_challenge_consume_once
-BEFORE UPDATE OF consumed_ms ON sandbox_registration_challenges
-WHEN OLD.consumed_ms IS NOT NULL OR NEW.consumed_ms IS NULL
+BEFORE UPDATE OF consumed_ms, consume_marker ON sandbox_registration_challenges
+WHEN OLD.consumed_ms IS NOT NULL OR NEW.consumed_ms IS NULL OR
+     NEW.consume_marker IS NULL OR length(NEW.consume_marker) <> 43
 BEGIN
   SELECT RAISE(ABORT, 'registration challenge already consumed');
 END;
@@ -43,7 +46,7 @@ CREATE TRIGGER IF NOT EXISTS sandbox_reg_vault_requires_challenge
 BEFORE INSERT ON sandbox_vaults
 WHEN NOT EXISTS (
   SELECT 1 FROM sandbox_registration_challenges
-  WHERE vault_id = NEW.vault_id AND consumed_ms IS NOT NULL
+  WHERE vault_id = NEW.vault_id AND consumed_ms IS NOT NULL AND consume_marker IS NOT NULL
 )
 BEGIN
   SELECT RAISE(ABORT, 'vault registration requires a consumed challenge');
