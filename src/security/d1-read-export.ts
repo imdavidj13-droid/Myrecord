@@ -61,7 +61,8 @@ function validate(
       !Number.isSafeInteger(challenge.expiresAt) ||
       challenge.expiresAt <= challenge.issuedAt ||
       challenge.expiresAt - challenge.issuedAt > 60_000 ||
-      !Number.isSafeInteger(sinceRevision) || sinceRevision < 0) {
+      !Number.isSafeInteger(sinceRevision) || sinceRevision < 0 ||
+      (action === "export" && sinceRevision !== 0)) {
     throw new Error("Invalid read/export request.");
   }
 }
@@ -97,7 +98,8 @@ export async function issueD1ReadChallengeForTests(
   db: PrototypeD1Database, vaultId: string, action: ReadAction,
   sinceRevision: number, now: number
 ): Promise<ProofChallengeV1> {
-  if (!Number.isSafeInteger(now) || !Number.isSafeInteger(sinceRevision) || sinceRevision < 0) {
+  if (!Number.isSafeInteger(now) || !Number.isSafeInteger(sinceRevision) || sinceRevision < 0 ||
+      (action === "export" && sinceRevision !== 0)) {
     throw new Error("Invalid challenge parameters.");
   }
   const challenge = issueChallengeForTests(vaultId, action, now);
@@ -197,6 +199,12 @@ export async function executeD1ReadForTests(
     return {entryId:row.entry_id,revision:row.revision,ciphertext} as EncryptedStoredEntry;
   });
   if (action === "read") return { entries, latestRevision: vault.latest_revision };
+  // Fail closed if a purported full export omits records due to LIMIT,
+  // concurrent mutation, or a malformed backend response.
+  if (entries.length !== vault.latest_revision ||
+      entries.some((entry, index) => entry.revision !== index + 1)) {
+    throw new Error("Incomplete encrypted vault export.");
+  }
   const backup = JSON.parse(vault.wrapped_backup_json) as SyntheticVaultBackup;
   if (!backup || backup.vaultId !== challenge.vaultId ||
       backup.wrappedDataKey?.vaultId !== challenge.vaultId ||
