@@ -93,6 +93,13 @@ export default function App({workspace,recoverFictional,onStartTest,onEndTest,te
   useEffect(()=>{
     if(sessionReady && screen==="home")go("write");
   },[sessionReady]);
+  const finishTest=()=>{
+    setWriting("");
+    setRecoveryPhrase("");
+    setWriterError(null);
+    setOnboardingConfirmed(false);
+    onEndTest?.();
+  };
   const quit=()=>{workspace?.close();setWriting("");setRecoveryPhrase("");setOnboardingConfirmed(false);window.location.replace("about:blank");};
   const modeNames:Record<Mode,string>={free:"Free writing",journal:"Journal",guided:"Guided writing",focus:"Focus mode"};
   return <div className={`site screen-${screen} ${mode==="focus"&&screen==="write"?"focus-site":""}`}>
@@ -106,7 +113,7 @@ export default function App({workspace,recoverFictional,onStartTest,onEndTest,te
         <button onClick={()=>go("export")}>Export</button>
         <button onClick={()=>go("support")}>Support</button>
       </nav>
-      <div className="header-actions">{onStartTest&&<div className="header-test-controls">{sessionReady?<span className="header-test-status">{vault.revision} fictional {vault.revision===1?"entry":"entries"}</span>:null}<button type="button" className="header-test-button" disabled={testBusy||sessionBusy} onClick={sessionReady?onEndTest:onStartTest}>{sessionReady?"End test":"Start test"}</button></div>}<button className="quiet" onClick={quit}><EyeOff size={16}/> Quick exit</button><button className="menu-button" aria-label="Toggle menu" onClick={()=>setMobileMenu(!mobileMenu)}>{mobileMenu?<X/>:<Menu/>}</button></div>
+      <div className="header-actions">{onStartTest&&<div className="header-test-controls">{sessionReady?<span className="header-test-status">{vault.revision} fictional {vault.revision===1?"entry":"entries"}</span>:null}<button type="button" className="header-test-button" disabled={testBusy||sessionBusy} onClick={sessionReady?finishTest:onStartTest}>{sessionReady?"End test":"Start test"}</button></div>}<button className="quiet" onClick={quit}><EyeOff size={16}/> Quick exit</button><button className="menu-button" aria-label="Toggle menu" onClick={()=>setMobileMenu(!mobileMenu)}>{mobileMenu?<X/>:<Menu/>}</button></div>
     </header>
     {testError&&<p className="header-test-error" role="alert">{testError}</p>}
     <main>
