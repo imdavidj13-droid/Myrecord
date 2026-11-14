@@ -1,3 +1,5 @@
+import VaultRecoveryTestControls from "./VaultRecoveryTestControls";
+import type {WorkspaceSession} from "./vault-workspace";
 import VaultRecordControls from "./VaultRecordControls";
 import { useSyncExternalStore } from "react";
 import type { VaultWorkspaceController, WorkspaceSnapshot } from "./vault-workspace";
@@ -30,8 +32,8 @@ const unavailableWorkspace: WorkspaceSnapshot = {
 };
 const subscribeUnavailable=()=>()=>{};
 const getUnavailable=()=>unavailableWorkspace;
-type AppProps = { workspace?: VaultWorkspaceController };
-export default function App({workspace}:AppProps){
+type AppProps = { workspace?: VaultWorkspaceController; recoverFictional?: (words:string)=>Promise<WorkspaceSession> };
+export default function App({workspace,recoverFictional}:AppProps){
   const [screen,setScreen]=useState<Screen>(()=>screenFromPath(window.location.pathname));
   const vault=useSyncExternalStore(workspace?.subscribe ?? subscribeUnavailable,workspace?.getSnapshot ?? getUnavailable,workspace?.getSnapshot ?? getUnavailable);
   const sessionReady=Boolean(workspace && vault.phase==="ready");
@@ -180,6 +182,14 @@ export default function App({workspace}:AppProps){
       <div className="experience-word-grid">{Array.from({length:12},(_,i)=><div className="word-placeholder" key={i}><small>{String(i+1).padStart(2,"0")}</small><span>Word</span></div>)}</div>
       <div className="mini-alert"><ShieldAlert size={18}/> Recovery is disabled in this preview. Do not enter an actual recovery phrase.</div>
     </div>
+    {workspace && recoverFictional && (vault.phase==="locked"||vault.phase==="closed"||vault.phase==="error") && <VaultRecoveryTestControls
+      recoverFictional={recoverFictional}
+      onRecovered={async session=>{
+        await workspace.unlock(session);
+        go("vault");
+      }}
+      onCancel={()=>go("vault")}
+    />}
     <div className="experience-actions"><button className="button" disabled><LockKeyhole size={18}/> Unlock my record</button><button className="text-link" onClick={()=>go("before")}>Start a new record preview <ArrowRight size={16}/></button></div>
   </div>
   <aside className="experience-scene" aria-hidden="true"><div className="scene-light"/><Botanical className="experience-botanical"/><div className="scene-journal"><div className="scene-journal-ribbon"/><div className="scene-journal-lines"/></div><div className="scene-cup"/><div className="scene-note"><span className="quote-mark">“</span><p>Come back when the time is right for you.</p></div></aside>
