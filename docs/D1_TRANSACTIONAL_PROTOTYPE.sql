@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS sandbox_vaults (
   verification_jwk TEXT NOT NULL,
   wrapped_backup_json TEXT NOT NULL,
   latest_revision INTEGER NOT NULL DEFAULT 0 CHECK(latest_revision >= 0),
-  status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'deleted'))
+  status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active', 'deletion_pending', 'deleted'))
 );
 
 -- Public verification keys and encrypted bootstrap must not be rewritten by
@@ -40,6 +40,21 @@ CREATE TABLE IF NOT EXISTS sandbox_consumed_nonces (
   consumed_ms INTEGER NOT NULL,
   FOREIGN KEY(nonce) REFERENCES sandbox_challenges(nonce)
 );
+
+-- A deletion challenge may be consumed only while the vault is active.
+-- This trigger also rejects the losing request in concurrent deletion races;
+-- a rejected D1 batch rolls back the nonce claim.
+CREATE TRIGGER IF NOT EXISTS sandbox_reject_stale_deletion_claim
+AFTER INSERT ON sandbox_consumed_nonces
+WHEN EXISTS (
+  SELECT 1 FROM sandbox_challenges c
+  JOIN sandbox_vaults v ON v.vault_id = c.vault_id
+  WHERE c.nonce = NEW.nonce AND c.action = 'delete'
+    AND v.status <> 'active'
+)
+BEGIN
+  SELECT RAISE(ABORT, 'vault is no longer active');
+END;
 
 CREATE TABLE IF NOT EXISTS sandbox_entries (
   entry_id TEXT NOT NULL PRIMARY KEY,
