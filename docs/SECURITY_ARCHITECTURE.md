@@ -225,6 +225,18 @@ This phase adds a parallel **version-2 test-only** D1 path without changing live
 
 **Do not deploy.** A digest chain alone is not a third-party timestamp, permanent evidence guarantee, independent server integrity guarantee, or protection against deletion of all copies. Client decryption must authenticate the AES-GCM AAD for every v2 entry. A server can still roll back the entire history unless the client has an independently trusted head. This path lacks production registration atomicity, incident response, authenticated deletion finalization, rate limits, data retention, privacy assessment and an independent external security audit. Tests have been added, but a complete CI pass is **not yet verified**.
 
+## Phase 17 — atomic D1 registration prototype and replay hardening
+
+Test-only files: `docs/D1_REGISTRATION_PROTOTYPE.sql`, `src/security/d1-registration.ts`, `src/security/d1-registration.test.ts` and `scripts/test_d1_registration.py`.
+
+- Pre-registration challenges live in a distinct table without a vault foreign key, because a vault cannot yet exist when its registration challenge is issued.
+- A challenge's proof-of-possession and separate signed registration intent are verified against the proposed public key. The intent signs the recovery lookup ID and **both encrypted recovery key envelopes**, so request tampering is rejected.
+- D1 `batch` groups (1) single-use challenge consumption using a fresh random 256-bit marker, (2) vault creation contingent on that exact marker, and (3) v2 genesis-head creation. Vault ID and lookup ID uniqueness constraints must abort the entire batch if duplicated.
+- The randomly generated marker prevents a zero-row challenge update from satisfying the vault insert with a previously consumed challenge. SQLite regression checks cover expiry, replay using the same or a different marker, uniqueness rollback and attempts to create an unchallenged vault.
+- SQLite and Wrangler local D1 checks were added to CI. No remote D1 migration was applied and no Worker handler exposes these prototypes.
+
+**Unresolved security limitation:** The signed intent does not prove to an untrusted server that a recovery phrase derives the submitted lookup ID and unlocks both envelopes; that consistency is checked only by the client-side preflight. Enrollment also needs anti-abuse controls, secure isolation of user material, recovery and deletion policy, production read/export semantics, and independent cryptographic/privacy/legal reviews. The full CI build/test result is not independently confirmed in this chat. This is not safe to use for live survivor testimony.
+
 ## Threat model (initial)
 
 Protect against:
