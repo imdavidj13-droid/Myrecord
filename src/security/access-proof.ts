@@ -52,7 +52,7 @@ function decodeB64u(value: unknown, expectedLength: number): Uint8Array {
   }
   const padded = value.replace(/-/g, "+").replace(/_/g, "/");
   const raw = atob(padded + "=".repeat((4 - padded.length % 4) % 4));
-  const bytes = Uint8Array.from(raw, c => c.charCodeAt(0));
+  const bytes = Uint8Array.from(Array.from(raw, char => char.charCodeAt(0)));
   if (bytes.length !== expectedLength || b64u(bytes) !== value) {
     throw new Error("Invalid proof encoding.");
   }
