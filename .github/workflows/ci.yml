@@ -21,5 +21,9 @@ jobs:
         run: python3 scripts/test_d1_schema.py
       - name: Validate concurrent append and nonce rollback
         run: python3 scripts/test_d1_concurrency.py
+      - name: Validate Cloudflare D1 schema with Wrangler local mode
+        run: |
+          npx --yes wrangler@4.156.2 d1 execute mysafespace-d1-local-test --local --config wrangler.d1-test.jsonc --file docs/D1_TRANSACTIONAL_PROTOTYPE.sql
+          npx --yes wrangler@4.156.2 d1 execute mysafespace-d1-local-test --local --config wrangler.d1-test.jsonc --command "SELECT name FROM sqlite_master WHERE type='table' AND name='sandbox_entries'"
       - name: Typecheck and build
         run: npm run build
