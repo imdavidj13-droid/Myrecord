@@ -12,6 +12,7 @@
 import { deriveVaultLookupIdForTests, isValidVaultLookupIdForTests } from "./recovery-bootstrap";
 import { unwrapVaultKeyForTests } from "./key-wrapping";
 import { recoverSigningCredentialForTests } from "./signing-recovery";
+import { importVerificationKeyForTests } from "./access-proof";
 import type { SyntheticVaultBackup } from "./synthetic-vault-store";
 
 function toBuffer(bytes: Uint8Array): ArrayBuffer {
@@ -58,23 +59,20 @@ export async function verifyLocalRecoveryConsistencyForTests(
     throw new Error("Verification key does not match signing-key backup.");
   }
 
-  // Match the actual imported public key against the verification key declared
-  // in the outer envelope. An attacker must not substitute that key.
-  const exported = await crypto.subtle.exportKey("jwk", signing.publicKey);
-  if (exported.x !== supplied.x || exported.y !== supplied.y) {
-    throw new Error("Recovered signing key does not match registered verifier.");
-  }
-
-  // Test key use with a local random challenge. No application data is saved.
+  // Public keys imported for verification are intentionally non-extractable.
+  // Verify the recovered signing key against the registered public JWK by
+  // signing a random challenge and checking it with a fresh imported verifier.
+  // This avoids exporting key material or weakening key extractability.
+  const registeredVerifier = await importVerificationKeyForTests(supplied);
   const challenge = crypto.getRandomValues(new Uint8Array(32));
   const signature = await crypto.subtle.sign(
     { name: "ECDSA", hash: "SHA-256" }, signing.privateKey, toBuffer(challenge)
   );
   if (!await crypto.subtle.verify(
-    { name: "ECDSA", hash: "SHA-256" }, signing.publicKey,
+    { name: "ECDSA", hash: "SHA-256" }, registeredVerifier,
     signature, toBuffer(challenge)
   )) {
-    throw new Error("Recovered signing credential failed local verification.");
+    throw new Error("Recovered signing key does not match registered verifier.");
   }
 
   return { ready: true, vaultId: backup.vaultId, lookupId };
