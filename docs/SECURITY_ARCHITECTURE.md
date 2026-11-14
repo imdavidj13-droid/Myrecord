@@ -164,6 +164,14 @@ Files: `docs/D1_TRANSACTIONAL_PROTOTYPE.sql`, `src/security/d1-transaction.ts`, 
 
 **Unresolved:** D1 concurrency and batch semantics must be tested against a dedicated disposable Cloudflare D1 test database, and errors/race conditions evaluated. The prototype has no secure atomic registration path or authenticated read/export/delete API. Secure challenge delivery requires an abuse-resistant endpoint, rate limits and metadata minimization. Signed append fields are still **not bound inside the entry AES-GCM AAD**, and operator-independent rollback/omission detection remains unsolved. The schema and adapter must receive independent technical review before any real-data deployment.
 
+## Phase 11 — local concurrent-writer constraint regression
+
+- Added `scripts/test_d1_concurrency.py` to run two concurrent SQLite connections against a disposable file-backed database and require exactly one commit at the same revision. The losing transaction must roll back nonce consumption.
+- Added the concurrency check to `.github/workflows/ci.yml`, alongside the earlier schema, cryptographic test and TypeScript build jobs.
+- A manual local check using a reconstructed copy of the draft schema confirmed one of two competing writers succeeded and only one challenge was consumed. This does **not** establish that GitHub CI has passed or that Cloudflare D1 uses identical locking and transaction semantics.
+- The user's Cloudflare D1 binding exists in `wrangler.jsonc`, but **no remote D1 migration, INSERT or API request has been performed** by this phase.
+- Next verification gate: inspect CI results, test a disposable isolated D1 database with artificial ciphertext only, review transaction failure behavior under concurrent Workers, and obtain independent protocol/security review before live enablement.
+
 ## Threat model (initial)
 
 Protect against:
