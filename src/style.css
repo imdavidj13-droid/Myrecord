@@ -318,3 +318,15 @@ html,body{overflow:hidden}
 .vault-delete-confirm label{font-size:12px;line-height:1.5}
 .vault-delete-confirm input{width:min(100%,420px);padding:10px 12px;background:#fffcf6;border:1px solid #b6cbb4;border-radius:6px;color:#244b32}
 @media(max-width:760px){.vault-record-controls,.vault-workspace-history{max-height:none}.vault-record-control{padding:14px}}
+
+
+/* Same-site, explicitly fictional test activation; no remote storage */
+.existing-site-test-controls{padding:13px clamp(16px,4vw,52px);background:#fff5e5;color:#36543b;border-bottom:1px solid #d9caa9;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;font-family:inherit}
+.existing-site-test-description{display:flex;align-items:flex-start;gap:10px;flex:1 1 440px}
+.existing-site-test-description strong{font-size:13px}
+.existing-site-test-description p{font-size:12px;line-height:1.55;margin:4px 0;max-width:950px}
+.existing-site-test-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.existing-site-test-actions span{font-size:12px;font-weight:600}
+.existing-site-test-actions button{display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:1px solid #6c916f;background:#fdfdf8;color:#244a31;border-radius:8px;padding:10px 14px;font-size:12px;font-weight:600}
+.existing-site-test-actions button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:650px){.existing-site-test-controls{padding:12px 17px}}
