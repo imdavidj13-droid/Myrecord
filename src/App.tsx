@@ -1,3 +1,5 @@
+import { useSyncExternalStore } from "react";
+import type { VaultWorkspaceController, WorkspaceSnapshot } from "./vault-workspace";
 import VaultDashboard from "./VaultDashboard";
 import RecoveryOnboarding from "./RecoveryOnboarding";
 import { useEffect, useState } from "react";
@@ -22,8 +24,29 @@ const reassurances = [
   {title:"Your words are enough.", body:"You don't have to make your writing perfect."}
 ];
 function Botanical({className=""}:{className?:string}) {return <div className={`botanical ${className}`} aria-hidden="true"><span className="stem"/>{Array.from({length:7},(_,i)=><span key={i} className={`leaf leaf-${i+1}`}/>)}</div>}
-export default function App(){
+const unavailableWorkspace: WorkspaceSnapshot = {
+  phase:"locked",entries:[],revision:0,headDigest:null,error:null
+};
+const subscribeUnavailable=()=>()=>{};
+const getUnavailable=()=>unavailableWorkspace;
+export default function App({workspace}:{workspace?:VaultWorkspaceController}={}){
   const [screen,setScreen]=useState<Screen>(()=>screenFromPath(window.location.pathname));
+  const vault=useSyncExternalStore(workspace?.subscribe ?? subscribeUnavailable,workspace?.getSnapshot ?? getUnavailable);
+  const sessionReady=Boolean(workspace && vault.phase==="ready");
+  const sessionBusy=Boolean(workspace && ["loading","saving","exporting","deleting"].includes(vault.phase));
+  const [writerError,setWriterError]=useState<string|null>(null);
+  const saveFictional=async()=>{
+    if(!workspace || !sessionReady) return;
+    const original=writing;
+    setWriterError(null);
+    try {
+      await workspace.saveFictionalText(original);
+      setWriting(current=>current===original?"":current);
+      go("vault");
+    } catch(error) {
+      setWriterError(error instanceof Error?error.message:"Saving failed.");
+    }
+  };
   const [mode,setMode]=useState<Mode>("free");
   const [writing,setWriting]=useState("");
   const [support,setSupport]=useState(true);
@@ -49,7 +72,7 @@ export default function App(){
     setScreen(page);
     setMobileMenu(false);
   };
-  const quit=()=>{setWriting("");setRecoveryPhrase("");setOnboardingConfirmed(false);window.location.replace("about:blank");};
+  const quit=()=>{workspace?.close();setWriting("");setRecoveryPhrase("");setOnboardingConfirmed(false);window.location.replace("about:blank");};
   const modeNames:Record<Mode,string>={free:"Free writing",journal:"Journal",guided:"Guided writing",focus:"Focus mode"};
   return <div className={`site screen-${screen} ${mode==="focus"&&screen==="write"?"focus-site":""}`}>
     <div className="demo-strip"><ShieldAlert size={15}/><strong>DESIGN PROTOTYPE</strong><span>Not encrypted or saved. Do not enter real experiences or identifying details.</span></div>
@@ -137,9 +160,12 @@ export default function App(){
   </div>
   <aside className="experience-scene" aria-hidden="true"><div className="scene-light"/><Botanical className="experience-botanical"/><div className="scene-journal"><div className="scene-journal-ribbon"/><div className="scene-journal-lines"/></div><div className="scene-cup"/><div className="scene-note"><span className="quote-mark">“</span><p>Your privacy is part of every step.</p></div></aside>
 </section>}
-    {screen==="write"&&<section className="writer-page"><div className="writer-head"><div><div className="eyebrow"><span className="eyebrow-line"/> YOUR PRIVATE WRITING SPACE</div><h1>What would you like<br/><em>to remember?</em></h1><p>You can begin wherever feels right. There is no perfect way to put something into words.</p></div><div className="writer-privacy"><ShieldCheck size={19}/><div><strong>Preview only</strong><span>Not encrypted or saved</span></div></div></div><div className="mode-bar"><div className="mode-tabs" role="group" aria-label="Writing mode">{(["free","journal","guided","focus"] as Mode[]).map(m=><button className={mode===m?"selected":""} aria-pressed={mode===m} onClick={()=>{setMode(m);if(m==="focus")setSupport(false);else setSupport(true)}} key={m}>{m==="free"?<PenLine size={16}/>:m==="journal"?<BookOpen size={16}/>:m==="guided"?<Sparkles size={16}/>:<Focus size={16}/>} {modeNames[m]}</button>)}</div>{mode!=="focus"&&<button className="subtle-button" onClick={()=>setSupport(!support)}>{support?"Hide":"Show"} encouragement <ChevronDown size={15}/></button>}</div><div className={`writing-layout ${!support||mode==="focus"?"solo":""}`}><section className={`writing-card ${mode==="journal"?"journal-card":""}`}><div className="editor-top"><span><Feather size={17}/> A PAGE OF YOUR OWN</span><span className="unsaved-dot"/> Unsaved · this page only</div>{mode==="guided"&&<div className="guide-in-editor"><span className="eyebrow">A GENTLE PLACE TO START</span><h3>You can begin with what you remember.</h3><p>If it helps, think about what you most want to put into words today.</p></div>}<label className="sr-only" htmlFor="record-entry">Your writing</label><textarea id="record-entry" spellCheck={false} value={writing} onChange={e=>setWriting(e.target.value)} placeholder="You can begin here, in your own words...\n\nThere's no rush. Write as much or as little as you wish."/><div className="editor-bottom"><span>{writing.trim()?writing.trim().split(/\s+/).length:0} words · Unsaved</span><div><button className="text-link" onClick={()=>setWriting("")}>Clear sample</button><button className="button" onClick={()=>go("vault")}>View vault preview <ArrowRight size={16}/></button></div></div></section>{support&&mode!=="focus"&&<aside className="support-column"><div className="encouragement-card"><span className="eyebrow"><Heart size={14}/> A GENTLE REMINDER</span><span className="quote-mark">“</span><h3>{reassurances[message].title}</h3><p>{reassurances[message].body}</p><button className="quiet-next" onClick={()=>setMessage((message+1)%reassurances.length)}>Another gentle reminder <ArrowRight size={15}/></button><Botanical className="support-botanical"/></div><div className="prompt-card"><button className="prompt-header" onClick={()=>setPromptOpen(!promptOpen)} aria-expanded={promptOpen}><span><Sparkles size={18}/> Optional writing prompts</span><ChevronDown size={17}/></button>{promptOpen&&<><p>Only if they feel helpful. You can ignore every one of them.</p>{prompts.map((prompt,i)=><div className="prompt-line" key={i}><span>{String(i+1).padStart(2,"0")}</span>{prompt}</div>)}</>}</div><div className="privacy-mini"><LockKeyhole size={18}/> This prototype does not save, transmit or encrypt your writing.</div></aside>}</div></section>}
+    {screen==="write"&&<section className="writer-page"><div className="writer-head"><div><div className="eyebrow"><span className="eyebrow-line"/> YOUR PRIVATE WRITING SPACE</div><h1>What would you like<br/><em>to remember?</em></h1><p>You can begin wherever feels right. There is no perfect way to put something into words.</p></div><div className="writer-privacy"><ShieldCheck size={19}/><div><strong>Preview only</strong><span>Not encrypted or saved</span></div></div></div><div className="mode-bar"><div className="mode-tabs" role="group" aria-label="Writing mode">{(["free","journal","guided","focus"] as Mode[]).map(m=><button className={mode===m?"selected":""} aria-pressed={mode===m} onClick={()=>{setMode(m);if(m==="focus")setSupport(false);else setSupport(true)}} key={m}>{m==="free"?<PenLine size={16}/>:m==="journal"?<BookOpen size={16}/>:m==="guided"?<Sparkles size={16}/>:<Focus size={16}/>} {modeNames[m]}</button>)}</div>{mode!=="focus"&&<button className="subtle-button" onClick={()=>setSupport(!support)}>{support?"Hide":"Show"} encouragement <ChevronDown size={15}/></button>}</div><div className={`writing-layout ${!support||mode==="focus"?"solo":""}`}><section className={`writing-card ${mode==="journal"?"journal-card":""}`}><div className="editor-top"><span><Feather size={17}/> A PAGE OF YOUR OWN</span><span className="unsaved-dot"/> {sessionReady?"Fictional test session · not production":"Unsaved · this page only"}</div>{mode==="guided"&&<div className="guide-in-editor"><span className="eyebrow">A GENTLE PLACE TO START</span><h3>You can begin with what you remember.</h3><p>If it helps, think about what you most want to put into words today.</p></div>}<label className="sr-only" htmlFor="record-entry">Your writing</label><textarea id="record-entry" spellCheck={false} value={writing} onChange={e=>setWriting(e.target.value)} placeholder="You can begin here, in your own words...\n\nThere's no rush. Write as much or as little as you wish."/><div className="editor-bottom"><span>{writing.trim()?writing.trim().split(/\s+/).length:0} words · {sessionReady?"Only saved after confirmation":"Unsaved"}</span><div><button className="text-link" onClick={()=>setWriting("")}>Clear sample</button>{sessionReady?<button className="button" onClick={()=>void saveFictional()} disabled={sessionBusy||!writing.trim()}>Save fictional entry <ArrowRight size={16}/></button>:<button className="button" onClick={()=>go("vault")}>View vault preview <ArrowRight size={16}/></button>}</div></div>{writerError&&<p role="alert" className="vault-workspace-error">{writerError}</p>}</section>{support&&mode!=="focus"&&<aside className="support-column"><div className="encouragement-card"><span className="eyebrow"><Heart size={14}/> A GENTLE REMINDER</span><span className="quote-mark">“</span><h3>{reassurances[message].title}</h3><p>{reassurances[message].body}</p><button className="quiet-next" onClick={()=>setMessage((message+1)%reassurances.length)}>Another gentle reminder <ArrowRight size={15}/></button><Botanical className="support-botanical"/></div><div className="prompt-card"><button className="prompt-header" onClick={()=>setPromptOpen(!promptOpen)} aria-expanded={promptOpen}><span><Sparkles size={18}/> Optional writing prompts</span><ChevronDown size={17}/></button>{promptOpen&&<><p>Only if they feel helpful. You can ignore every one of them.</p>{prompts.map((prompt,i)=><div className="prompt-line" key={i}><span>{String(i+1).padStart(2,"0")}</span>{prompt}</div>)}</>}</div><div className="privacy-mini"><LockKeyhole size={18}/> This prototype does not save, transmit or encrypt your writing.</div></aside>}</div></section>}
     {screen==="vault"&&<VaultDashboard
       locallyConfirmed={onboardingConfirmed}
+      workspace={workspace?vault:undefined}
+      onRefresh={workspace?()=>{void workspace.refresh().catch(()=>{});}:undefined}
+      onClose={workspace?()=>{workspace.close();setWriting("");}:undefined}
       onWrite={()=>go("write")}
       onExport={()=>go("export")}
       onRecover={()=>go("return")}
