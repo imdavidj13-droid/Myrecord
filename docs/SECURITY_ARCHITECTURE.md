@@ -273,6 +273,15 @@ Test-only files: `docs/D1_REGISTRATION_PROTOTYPE.sql`, `src/security/d1-registra
 - No vault data APIs or remote D1 migrations have been activated. The existing writer remains explicitly unsaved/unencrypted and must not be used for real testimony.
 - Verification is still required for the new commits, and independent security, privacy, legal and safeguarding assessments remain launch blockers.
 
+## Phase 22 — browser vault session composition (synthetic-only)
+
+- Added `src/security/browser-vault-session.ts`: a strictly test-only browser orchestration layer connecting recovery-word-derived lookup, local encrypted key envelopes, signed registration intent, version-2 AES-GCM encrypted append, signed read/export challenges, complete history verification, and client-side decryption.
+- The `VaultTransportForTests` interface intentionally has **no implementation in the public app**. It exposes only encrypted backup envelopes, opaque lookup IDs, signed challenges/proofs, and encrypted record envelopes. The phrase and plaintext are never parameters to the transport. There are no network calls, browser storage writes or server bindings in this module.
+- On recovery, the client checks lookup/envelope consistency, restores non-extractable WebCrypto keys and verifies complete history, with optional comparison to an independently trusted chain head. Appends first verify current history, then sign the exact encrypted envelope, request a challenge, append it and read back to confirm the resulting digest.
+- Added `src/security/browser-vault-session.test.ts`, using a **synthetic in-memory transport** to check two append revisions, recovery, export action separation, wrong phrase rejection, tampered ciphertext rejection, and absence of phrase/plaintext in captured transport requests.
+- The in-memory transport test double is **not a server authentication implementation**, and the deployed website still does not import the vault client or accept real records. Separate D1 SQL regression tests check database constraints but do not constitute a deployed end-to-end security review.
+- No remote migration or user-facing storage endpoint was enabled. The first requirement before real data remains independent cryptography/security assessment, DPIA/legal/safeguarding review, hardened server operations, and verified production-safe rollout controls.
+
 ## Threat model (initial)
 
 Protect against:
