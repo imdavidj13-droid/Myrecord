@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  ArrowLeft, ArrowRight, BookOpen, CheckCircle2, Download, EyeOff,
+  ArrowRight, BookOpen, CheckCircle2, Download, EyeOff,
   Feather, FileText, Focus, Heart, KeyRound, LockKeyhole, PenLine,
   RotateCcw, ShieldAlert, Sparkles
 } from "lucide-react";
